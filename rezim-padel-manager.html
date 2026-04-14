@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rezim Fantasy Padel Manager</title>
+  <meta name="description"
+    content="Game fantasy padel manager komunitas Rezim70 — simulasi pasangan, chemistry, dan tournament berbasis statistik nyata.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 3px;
+    }
+
+    /* Stat bar */
+    .stat-bar-fill {
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Page transitions */
+    .page {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Player card hover */
+    .player-card {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .player-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
+    }
+
+    .player-card.selected {
+      border-color: #f59e0b !important;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4);
+    }
+
+    /* Chemistry meter */
+    .chemistry-ring {
+      transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Bracket line */
+    .bracket-match {
+      position: relative;
+    }
+
+    /* Pulse animation */
+    @keyframes pulse-glow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+      }
+    }
+
+    .pulse-amber {
+      animation: pulse-glow 2s infinite;
+    }
+
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, #f59e0b, #fbbf24, #f97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      backdrop-filter: blur(4px);
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: relative;
+    }
+
+    .tooltip:hover .tooltip-text {
+      display: block;
+    }
+
+    .tooltip-text {
+      display: none;
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    /* Form input */
+    input,
+    select,
+    textarea {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #f59e0b;
+    }
+
+    select option {
+      background: #1e293b;
+    }
+
+    /* Bracket */
+    .bracket-container {
+      overflow-x: auto;
+    }
+
+    .bracket-round {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+
+    .bracket-slot {
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: #1e293b;
+      margin: 4px 0;
+      min-width: 180px;
+      font-size: 13px;
+    }
+
+    .bracket-slot.winner {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .spinner {
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Mobile nav */
+    @media (max-width: 640px) {
+      .desktop-nav {
+        display: none;
+      }
+
+      .mobile-nav {
+        display: flex;
+      }
+    }
+
+    @media (min-width: 641px) {
+      .mobile-nav {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+
+  <!-- ==================== NAVBAR ==================== -->
+  <nav class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 font-black text-sm">
+          R</div>
+        <div>
+          <div class="font-bold text-sm leading-tight gradient-text">REZIMMAINPADEL</div>
+          <div class="text-xs text-slate-500 leading-tight">Padel PairManager</div>
+        </div>
+      </div>
+      <!-- Desktop Nav -->
+      <div class="desktop-nav flex items-center gap-1">
+        <button onclick="showPage('home')"
+          class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all"
+          data-page="home">🏠 Home</button>
+        <button onclick="showPage('players')"
+          class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all"
+          data-page="players">👥 Pemain</button>
+        <button onclick="showPage('builder')"
+          class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all"
+          data-page="builder">⚡ Pair Builder</button>
+        <button onclick="showPage('simulator')"
+          class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all"
+          data-page="simulator">🏆 Simulator</button>
+        <button onclick="showPage('supermanager')"
+          class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all"
+          data-page="supermanager">🔐 Super Manager</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="text-xs text-slate-500 hidden sm:block">v1.0</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Bottom Nav -->
+  <div
+    class="mobile-nav fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur border-t border-slate-800 py-2 px-2">
+    <div class="flex justify-around">
+      <button onclick="showPage('home')" class="mob-nav flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg"
+        data-page="home">
+        <span class="text-lg">🏠</span><span class="text-[10px] text-slate-400">Home</span>
+      </button>
+      <button onclick="showPage('players')" class="mob-nav flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg"
+        data-page="players">
+        <span class="text-lg">👥</span><span class="text-[10px] text-slate-400">Pemain</span>
+      </button>
+      <button onclick="showPage('builder')" class="mob-nav flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg"
+        data-page="builder">
+        <span class="text-lg">⚡</span><span class="text-[10px] text-slate-400">Builder</span>
+      </button>
+      <button onclick="showPage('simulator')" class="mob-nav flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg"
+        data-page="simulator">
+        <span class="text-lg">🏆</span><span class="text-[10px] text-slate-400">Sim</span>
+      </button>
+      <button onclick="showPage('supermanager')" class="mob-nav flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg"
+        data-page="supermanager">
+        <span class="text-lg">🔐</span><span class="text-[10px] text-slate-400">Admin</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="max-w-7xl mx-auto px-4 pb-24 pt-6">
+
+    <!-- ===== HOME PAGE ===== -->
+    <div id="page-home" class="page active">
+      <!-- Hero -->
+      <div class="text-center mb-10">
+        <div
+          class="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 text-amber-400 text-xs font-medium mb-4">
+          🎾 Rezim70 Padel Community
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-black mb-3 leading-tight">
+          <span class="gradient-text">Fantasy Padel</span><br>
+          <span class="text-white">Manager</span>
+        </h1>
+        <p class="text-slate-400 max-w-md mx-auto text-sm leading-relaxed">
+          Rakit pasangan terbaik dari <strong class="text-slate-200">24 pemain Rezim70</strong>, hitung chemistry, dan
+          simulasikan tournament Americano.
+        </p>
+      </div>
+
+      <!-- Mode Cards -->
+      <div class="grid sm:grid-cols-3 gap-4 mb-10">
+        <button onclick="showPage('builder')"
+          class="group bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-amber-500/50 rounded-2xl p-6 text-left transition-all hover:-translate-y-1">
+          <div
+            class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+            ⚡</div>
+          <h3 class="font-bold text-white mb-1">Pair Builder</h3>
+          <p class="text-slate-400 text-sm">Rakit pasangan impian, lihat chemistry score real-time.</p>
+          <div class="mt-4 text-amber-400 text-xs font-medium flex items-center gap-1">Mulai build <span>→</span></div>
+        </button>
+        <button onclick="showPage('simulator')"
+          class="group bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-green-500/50 rounded-2xl p-6 text-left transition-all hover:-translate-y-1">
+          <div
+            class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+            🏆</div>
+          <h3 class="font-bold text-white mb-1">Tournament Simulator</h3>
+          <p class="text-slate-400 text-sm">Simulasi bracket knockout format Americano 21 poin.</p>
+          <div class="mt-4 text-green-400 text-xs font-medium flex items-center gap-1">Simulasi sekarang <span>→</span>
+          </div>
+        </button>
+        <button onclick="showPage('supermanager')"
+          class="group bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-blue-500/50 rounded-2xl p-6 text-left transition-all hover:-translate-y-1">
+          <div
+            class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+            🔐</div>
+          <h3 class="font-bold text-white mb-1">Super Manager</h3>
+          <p class="text-slate-400 text-sm">Update statistik pemain dari hasil latihan nyata.</p>
+          <div class="mt-4 text-blue-400 text-xs font-medium flex items-center gap-1">Login <span>→</span></div>
+        </button>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <div class="bg-slate-800/50 rounded-xl p-4 text-center border border-slate-700/50">
+          <div class="text-2xl font-black text-amber-400" id="stat-total-players">24</div>
+          <div class="text-xs text-slate-400 mt-0.5">Pemain Terdaftar</div>
+        </div>
+        <div class="bg-slate-800/50 rounded-xl p-4 text-center border border-slate-700/50">
+          <div class="text-2xl font-black text-green-400" id="stat-total-matches">0</div>
+          <div class="text-xs text-slate-400 mt-0.5">Total Match</div>
+        </div>
+        <div class="bg-slate-800/50 rounded-xl p-4 text-center border border-slate-700/50">
+          <div class="text-2xl font-black text-blue-400" id="stat-top-rating">84.8</div>
+          <div class="text-xs text-slate-400 mt-0.5">Rating Tertinggi</div>
+        </div>
+        <div class="bg-slate-800/50 rounded-xl p-4 text-center border border-slate-700/50">
+          <div class="text-2xl font-black text-purple-400" id="stat-best-chemistry">--</div>
+          <div class="text-xs text-slate-400 mt-0.5">Best Chemistry</div>
+        </div>
+      </div>
+
+      <!-- Top Players Preview -->
+      <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-white">🏅 Top Players</h2>
+          <button onclick="showPage('players')" class="text-xs text-amber-400 hover:underline">Lihat semua →</button>
+        </div>
+        <div id="home-top-players" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <!-- ===== PLAYERS PAGE ===== -->
+    <div id="page-players" class="page">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-white">👥 Database Pemain</h1>
+          <p class="text-slate-400 text-sm">24 pemain Rezim70 — Update 140426</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <select id="filter-type" onchange="renderPlayersPage()" class="text-sm">
+            <option value="">Semua Tipe</option>
+            <option value="Aggressive Attacker">Aggressive Attacker</option>
+            <option value="Attacker">Attacker</option>
+            <option value="Balance All Rounder">All Rounder</option>
+            <option value="Defensive">Defensive</option>
+            <option value="Pure Defensive">Pure Defensive</option>
+          </select>
+          <select id="sort-by" onchange="renderPlayersPage()" class="text-sm">
+            <option value="overall">Sort: Overall ↓</option>
+            <option value="attacking">Sort: Attacking</option>
+            <option value="defense">Sort: Defense</option>
+            <option value="physical">Sort: Physical</option>
+            <option value="tactical">Sort: Tactical</option>
+            <option value="mental">Sort: Mental</option>
+            <option value="name">Sort: Nama A-Z</option>
+          </select>
+        </div>
+      </div>
+      <div id="players-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+
+    <!-- ===== PAIR BUILDER PAGE ===== -->
+    <div id="page-builder" class="page">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white">⚡ Pair Builder</h1>
+        <p class="text-slate-400 text-sm">Pilih 2 pemain untuk melihat chemistry dan pair rating mereka.</p>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-4">
+        <!-- Player Selection -->
+        <div class="lg:col-span-2">
+          <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-4 mb-4">
+            <div class="flex items-center gap-2 mb-3">
+              <h2 class="font-semibold text-white text-sm">Pilih Pemain</h2>
+              <span class="text-xs text-slate-400">(klik untuk pilih, maks 2 per pair)</span>
+            </div>
+            <div class="flex gap-2 mb-3">
+              <input type="text" id="search-builder" onkeyup="renderBuilderCards()" placeholder="🔍 Cari pemain..."
+                class="text-sm flex-1">
+              <select id="filter-builder-type" onchange="renderBuilderCards()" class="text-sm">
+                <option value="">Semua Tipe</option>
+                <option value="Aggressive Attacker">Agg. Attacker</option>
+                <option value="Attacker">Attacker</option>
+                <option value="Balance All Rounder">All Rounder</option>
+                <option value="Defensive">Defensive</option>
+                <option value="Pure Defensive">Pure Defensive</option>
+              </select>
+            </div>
+            <div id="builder-player-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-96 overflow-y-auto pr-1">
+            </div>
+          </div>
+
+          <!-- Multi Pair List -->
+          <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-4">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-white text-sm">📋 Daftar Pair yang Dibuat</h2>
+              <div class="flex gap-2">
+                <button onclick="clearAllPairs()" class="text-xs text-red-400 hover:underline">Hapus semua</button>
+                <button onclick="sendPairsToSimulator()"
+                  class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs px-3 py-1.5 rounded-lg transition-colors">→
+                  Ke Simulator</button>
+              </div>
+            </div>
+            <div id="pairs-list" class="space-y-2"></div>
+            <div id="pairs-empty" class="text-center py-8 text-slate-500 text-sm">
+              Belum ada pair. Pilih 2 pemain di atas, lalu klik "Tambah Pair".
+            </div>
+          </div>
+        </div>
+
+        <!-- Chemistry Panel -->
+        <div>
+          <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-4 sticky top-20">
+            <h2 class="font-semibold text-white text-sm mb-4">Chemistry Preview</h2>
+            <div id="chemistry-panel">
+              <div class="text-center py-8 text-slate-500 text-sm">
+                Pilih 2 pemain untuk melihat chemistry
+              </div>
+            </div>
+            <div id="add-pair-btn-container" class="hidden mt-4">
+              <button onclick="addCurrentPair()"
+                class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2.5 rounded-xl transition-colors text-sm">
+                ➕ Tambah ke Daftar Pair
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SIMULATOR PAGE ===== -->
+    <div id="page-simulator" class="page">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white">🏆 Tournament Simulator</h1>
+        <p class="text-slate-400 text-sm">Format Americano — total 21 poin per match, single elimination.</p>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-4">
+        <!-- Setup Panel -->
+        <div id="sim-setup-panel">
+          <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-4 mb-4">
+            <h2 class="font-semibold text-white text-sm mb-3">⚙️ Setup Tournament</h2>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs text-slate-400 mb-1 block">Nama Tournament</label>
+                <input type="text" id="sim-tournament-name" value="Rezim Cup" class="w-full text-sm">
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 mb-1 block">Format Bracket</label>
+                <select id="sim-bracket-size" class="w-full text-sm">
+                  <option value="4">4 Pair (2 ronde)</option>
+                  <option value="8" selected>8 Pair (3 ronde)</option>
+                  <option value="12">12 Pair (Round Robin + Final)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pair Selector for Sim -->
+          <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-4 mb-4">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-white text-sm">Pilih Pair Tournament</h2>
+              <button onclick="autoSelectPairs()" class="text-xs text-amber-400 hover:underline">Auto pilih</button>
+            </div>
+            <div id="sim-pair-selector" class="space-y-2 max-h-72 overflow-y-auto"></div>
+            <div class="mt-3 pt-3 border-t border-slate-700">
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Pair terpilih: <span id="sim-selected-count" class="text-amber-400 font-bold">0</span></span>
+                <span>Target: <span id="sim-target-count" class="text-white">8</span></span>
+              </div>
+              <button onclick="startTournament()" id="sim-start-btn" disabled
+                class="w-full bg-green-500 disabled:bg-slate-600 disabled:text-slate-400 hover:bg-green-400 text-slate-900 font-bold py-2.5 rounded-xl transition-colors text-sm mt-2">
+                🚀 Mulai Simulasi
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Builder in Sim -->
+        <div id="sim-quick-builder" class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-4">
+          <h2 class="font-semibold text-white text-sm mb-3">Quick Pair Builder</h2>
+          <p class="text-xs text-slate-400 mb-3">Belum punya pair? Buat cepat di sini:</p>
+          <div class="grid grid-cols-2 gap-1.5 max-h-64 overflow-y-auto" id="sim-player-quick-list"></div>
+          <div class="mt-3 pt-3 border-t border-slate-700 space-y-2">
+            <div class="flex gap-2 text-xs">
+              <div class="flex-1 bg-slate-700/50 rounded-lg p-2 text-center">
+                <div class="text-slate-400 mb-0.5">Pemain 1</div>
+                <div id="qb-player1" class="text-amber-400 font-medium truncate">--</div>
+              </div>
+              <div class="flex-1 bg-slate-700/50 rounded-lg p-2 text-center">
+                <div class="text-slate-400 mb-0.5">Pemain 2</div>
+                <div id="qb-player2" class="text-amber-400 font-medium truncate">--</div>
+              </div>
+            </div>
+            <button onclick="addQuickPair()" id="qb-add-btn" disabled
+              class="w-full bg-amber-500 disabled:bg-slate-600 disabled:text-slate-400 hover:bg-amber-400 text-slate-900 font-bold py-2 rounded-lg transition-colors text-xs">
+              ➕ Tambah Pair
+            </button>
+          </div>
+        </div>
+
+        <!-- Bracket / Results -->
+        <div id="sim-results-area" class="lg:col-span-3">
+          <div id="sim-placeholder" class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-10 text-center">
+            <div class="text-5xl mb-4">🏆</div>
+            <div class="text-slate-400 text-sm">Setup pair di panel kiri, lalu klik "Mulai Simulasi"</div>
+          </div>
+          <div id="sim-bracket-display" class="hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SUPER MANAGER PAGE ===== -->
+    <div id="page-supermanager" class="page">
+      <!-- Login Gate -->
+      <div id="sm-login-gate">
+        <div class="max-w-sm mx-auto mt-10">
+          <div class="bg-slate-800 rounded-2xl border border-slate-700 p-8 text-center">
+            <div class="text-5xl mb-4">🔐</div>
+            <h1 class="text-xl font-bold text-white mb-2">Super Manager</h1>
+            <p class="text-slate-400 text-sm mb-6">Masukkan password untuk akses panel admin.</p>
+            <input type="password" id="sm-password-input" placeholder="Password..."
+              class="w-full text-center text-sm mb-3" onkeydown="if(event.key==='Enter')smLogin()">
+            <button onclick="smLogin()"
+              class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2.5 rounded-xl transition-colors">
+              Login →
+            </button>
+            <div id="sm-login-error" class="text-red-400 text-xs mt-3 hidden">Password salah. Coba lagi.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Super Manager Dashboard -->
+      <div id="sm-dashboard" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h1 class="text-2xl font-bold text-white">🔐 Super Manager</h1>
+            <p class="text-slate-400 text-sm">Panel update statistik dan manajemen pemain.</p>
+          </div>
+          <button onclick="smLogout()"
+            class="text-xs text-red-400 border border-red-400/30 px-3 py-1.5 rounded-lg hover:bg-red-400/10 transition-colors">Logout</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-2 mb-6 flex-wrap">
+          <button onclick="smShowTab('input')"
+            class="sm-tab active-tab bg-amber-500 text-slate-900 font-bold text-sm px-4 py-2 rounded-lg"
+            data-tab="input">📝 Input Match</button>
+          <button onclick="smShowTab('players')"
+            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg"
+            data-tab="players">👥 Status Pemain</button>
+          <button onclick="smShowTab('history')"
+            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg"
+            data-tab="history">📜 Match History</button>
+          <button onclick="smShowTab('data')"
+            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg"
+            data-tab="data">💾 Data</button>
+          <button onclick="smShowTab('guide')"
+            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg"
+            data-tab="guide">📖 Panduan</button>
+        </div>
+
+        <!-- Tab: Input Match -->
+        <div id="sm-tab-input" class="sm-tab-content">
+          <div class="grid lg:grid-cols-2 gap-4">
+            <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-5">
+              <h2 class="font-semibold text-white mb-4">📝 Input Hasil Match Americano</h2>
+              <div class="space-y-4">
+                <div>
+                  <label class="text-xs text-slate-400 mb-1 block">Tanggal</label>
+                  <input type="date" id="match-date" class="w-full text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-xs text-slate-400 mb-1 block">Pair A — Pemain 1</label>
+                    <select id="match-a1" class="w-full text-sm" onchange="updateMatchPreview()">
+                      <option value="">Pilih...</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-xs text-slate-400 mb-1 block">Pair A — Pemain 2</label>
+                    <select id="match-a2" class="w-full text-sm" onchange="updateMatchPreview()">
+                      <option value="">Pilih...</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="text-center text-slate-400 font-bold text-xs">VS</div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-xs text-slate-400 mb-1 block">Pair B — Pemain 1</label>
+                    <select id="match-b1" class="w-full text-sm" onchange="updateMatchPreview()">
+                      <option value="">Pilih...</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-xs text-slate-400 mb-1 block">Pair B — Pemain 2</label>
+                    <select id="match-b2" class="w-full text-sm" onchange="updateMatchPreview()">
+                      <option value="">Pilih...</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Score Inputs -->
+                <div>
+                  <label class="text-xs text-slate-400 mb-2 block">Score Americano (Total = 21)</label>
+                  <div class="flex items-center gap-3">
+                    <div class="flex-1">
+                      <div class="text-xs text-slate-400 mb-1 text-center">Pair A</div>
+                      <input type="number" id="match-score-a" min="0" max="21" placeholder="0"
+                        class="w-full text-center text-lg font-bold" oninput="autoCalcScore('a')"
+                        onchange="updateMatchPreview()">
+                    </div>
+                    <div class="text-slate-400 font-bold">-</div>
+                    <div class="flex-1">
+                      <div class="text-xs text-slate-400 mb-1 text-center">Pair B</div>
+                      <input type="number" id="match-score-b" min="0" max="21" placeholder="0"
+                        class="w-full text-center text-lg font-bold" oninput="autoCalcScore('b')"
+                        onchange="updateMatchPreview()">
+                    </div>
+                  </div>
+                  <!-- Quick score buttons -->
+                  <div class="grid grid-cols-4 gap-1 mt-2">
+                    <button onclick="setScore(11,10)"
+                      class="text-xs bg-slate-700 hover:bg-slate-600 rounded py-1 transition-colors">11-10</button>
+                    <button onclick="setScore(12,9)"
+                      class="text-xs bg-slate-700 hover:bg-slate-600 rounded py-1 transition-colors">12-9</button>
+                    <button onclick="setScore(13,8)"
+                      class="text-xs bg-slate-700 hover:bg-slate-600 rounded py-1 transition-colors">13-8</button>
+                    <button onclick="setScore(14,7)"
+                      class="text-xs bg-slate-700 hover:bg-slate-600 rounded py-1 transition-colors">14-7</button>
+                    <button onclick="setScore(15,6)"
+                      class="text-xs bg-slate-700 hover:bg-slate-600 rounded py-1 transition-colors">15-6</button>
+                    <button onclick="setScore(16,5)"
+                      class="text-xs bg-slate-700 hover:bg-slate-600 rounded py-1 transition-colors">16-5</button>
+                    <button onclick="setScore(17,4)"
+                      class="text-xs bg-slate-700 hover:bg-slate-600 rounded py-1 transition-colors">17-4</button>
+                    <button onclick="setScore(18,3)"
+                      class="text-xs bg-slate-700 hover:bg-slate-600 rounded py-1 transition-colors">18-3</button>
+                  </div>
+                  <div id="score-validation" class="text-xs mt-1 text-center"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-xs text-slate-400 mb-1 block">Jenis Latihan</label>
+                    <select id="match-type" class="w-full text-sm" onchange="updateMatchPreview()">
+                      <option value="REZIM">Sesama Rezim70 (+chemistry)</option>
+                      <option value="SOLO">Solo / Di Luar Rezim</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-xs text-slate-400 mb-1 block">MVP (Opsional)</label>
+                    <select id="match-mvp" class="w-full text-sm" onchange="updateMatchPreview()">
+                      <option value="">-- Tidak ada --</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="flex gap-3">
+                  <button onclick="previewMatchChanges()"
+                    class="flex-1 border border-amber-500 text-amber-400 hover:bg-amber-500/10 font-semibold py-2.5 rounded-xl transition-colors text-sm">
+                    👁️ Preview
+                  </button>
+                  <button onclick="submitMatch()"
+                    class="flex-1 bg-green-500 hover:bg-green-400 text-slate-900 font-bold py-2.5 rounded-xl transition-colors text-sm">
+                    ✅ Submit & Update
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-5">
+              <h2 class="font-semibold text-white mb-4">📊 Preview Perubahan Stats</h2>
+              <div id="match-preview-panel">
+                <div class="text-center py-12 text-slate-500 text-sm">
+                  Isi form match di sebelah kiri, lalu klik "Preview" untuk melihat perubahan stats.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Player Status -->
+        <div id="sm-tab-players" class="sm-tab-content hidden">
+          <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-5">
+            <h2 class="font-semibold text-white mb-4">👥 Status Semua Pemain</h2>
+            <div id="sm-player-status-list" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Match History -->
+        <div id="sm-tab-history" class="sm-tab-content hidden">
+          <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="font-semibold text-white">📜 Match History</h2>
+              <span class="text-xs text-slate-400"><span id="history-count">0</span> match tercatat</span>
+            </div>
+            <div id="sm-history-list" class="space-y-3"></div>
+            <div id="sm-history-empty" class="text-center py-8 text-slate-500 text-sm">Belum ada match yang diinput.
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Data -->
+        <div id="sm-tab-data" class="sm-tab-content hidden">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-5">
+              <h2 class="font-semibold text-white mb-2">💾 Export Data</h2>
+              <p class="text-slate-400 text-xs mb-4">Simpan semua data (pemain, stats, match history) sebagai file JSON
+                untuk backup atau sync ke device lain.</p>
+              <button onclick="exportData()"
+                class="w-full bg-blue-500 hover:bg-blue-400 text-white font-bold py-2.5 rounded-xl transition-colors text-sm">
+                ⬇️ Export JSON
+              </button>
+            </div>
+            <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-5">
+              <h2 class="font-semibold text-white mb-2">📂 Import Data</h2>
+              <p class="text-slate-400 text-xs mb-4">Load data dari file JSON yang sebelumnya di-export. Data saat ini
+                akan <strong class="text-red-400">diganti</strong>.</p>
+              <label class="w-full block">
+                <input type="file" id="import-file" accept=".json" onchange="importData(event)" class="hidden">
+                <div onclick="document.getElementById('import-file').click()"
+                  class="w-full bg-purple-500 hover:bg-purple-400 text-white font-bold py-2.5 rounded-xl transition-colors text-sm text-center cursor-pointer">
+                  ⬆️ Import JSON
+                </div>
+              </label>
+            </div>
+            <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-5 sm:col-span-2">
+              <h2 class="font-semibold text-white mb-2">🔄 Reset Data</h2>
+              <p class="text-slate-400 text-xs mb-4">Reset semua stats ke nilai awal dari data asli (playerstats). Match
+                history dan chemistry akan dihapus.</p>
+              <button onclick="resetData()"
+                class="bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 text-red-400 font-bold py-2.5 px-6 rounded-xl transition-colors text-sm">
+                ⚠️ Reset ke Data Awal
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Algorithm Guide (Super Manager only — not public) -->
+        <div id="sm-tab-guide" class="sm-tab-content hidden">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h2 class="font-bold text-white text-lg">📖 Panduan Algoritma Simulasi</h2>
+              <p class="text-xs text-slate-400 mt-0.5">Dokumentasi formula &amp; aturan sistem &mdash; hanya untuk Super Manager</p>
+            </div>
+            <span class="text-xs bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1.5 rounded-lg font-medium">🔒 Confidential</span>
+          </div>
+          <div id="guide-rendered-content" class="space-y-2"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== PLAYER DETAIL MODAL ==================== -->
+  <div id="player-modal"
+    class="fixed inset-0 z-50 hidden modal-overlay bg-slate-900/80 flex items-center justify-center p-4">
+    <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md max-h-screen overflow-y-auto">
+      <div id="player-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST ==================== -->
+  <div id="toast" class="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 hidden">
+    <div id="toast-inner" class="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-xl"></div>
+  </div>
+
+  <script>
+    // ============================================================
+    //  DATA — 24 PEMAIN REZIM70
+    // ============================================================
+    const DEFAULT_PLAYERS = [
+      { id: 1, name: "Agung", atk: 74, def: 75, phy: 76, tac: 73, men: 77, overall: 75.0, type: "Defensive" },
+      { id: 2, name: "Ai", atk: 75, def: 79, phy: 76, tac: 78, men: 77, overall: 77.0, type: "Pure Defensive" },
+      { id: 3, name: "Andi", atk: 82, def: 83, phy: 80, tac: 86, men: 80, overall: 82.2, type: "Balance All Rounder" },
+      { id: 4, name: "Bimo", atk: 75, def: 77, phy: 72, tac: 77, men: 75, overall: 75.2, type: "Defensive" },
+      { id: 5, name: "Bobby", atk: 76, def: 75, phy: 73, tac: 76, men: 76, overall: 75.2, type: "Attacker" },
+      { id: 6, name: "Bowo Prasetyo", atk: 77, def: 78, phy: 78, tac: 77, men: 78, overall: 77.6, type: "Attacker" },
+      { id: 7, name: "Bowo Satrio", atk: 75, def: 77, phy: 76, tac: 75, men: 74, overall: 75.4, type: "Defensive" },
+      { id: 8, name: "Enal", atk: 79, def: 76, phy: 80, tac: 76, men: 77, overall: 77.6, type: "Aggressive Attacker" },
+      { id: 9, name: "Gammar", atk: 77, def: 78, phy: 77, tac: 79, men: 78, overall: 77.8, type: "Defensive" },
+      { id: 10, name: "Hendra", atk: 75, def: 76, phy: 75, tac: 75, men: 76, overall: 75.4, type: "Balance All Rounder" },
+      { id: 11, name: "Heru", atk: 85, def: 85, phy: 83, tac: 88, men: 83, overall: 84.8, type: "Balance All Rounder" },
+      { id: 12, name: "Irul", atk: 75, def: 76, phy: 76, tac: 75, men: 79, overall: 76.2, type: "Defensive" },
+      { id: 13, name: "Jino", atk: 75, def: 75, phy: 73, tac: 73, men: 76, overall: 74.4, type: "Balance All Rounder" },
+      { id: 14, name: "Kresna", atk: 86, def: 76, phy: 88, tac: 77, men: 80, overall: 81.4, type: "Aggressive Attacker" },
+      { id: 15, name: "Kukuh", atk: 78, def: 79, phy: 85, tac: 80, men: 79, overall: 80.2, type: "Balance All Rounder" },
+      { id: 16, name: "Mel", atk: 78, def: 77, phy: 77, tac: 80, men: 79, overall: 78.2, type: "Attacker" },
+      { id: 17, name: "Omar", atk: 78, def: 75, phy: 75, tac: 78, men: 77, overall: 76.6, type: "Attacker" },
+      { id: 18, name: "Ponti", atk: 76, def: 78, phy: 74, tac: 77, men: 76, overall: 76.2, type: "Defensive" },
+      { id: 19, name: "Rafly", atk: 77, def: 79, phy: 77, tac: 79, men: 78, overall: 78.0, type: "Defensive" },
+      { id: 20, name: "Rifky", atk: 80, def: 78, phy: 77, tac: 77, men: 78, overall: 78.0, type: "Attacker" },
+      { id: 21, name: "Shinta", atk: 73, def: 77, phy: 73, tac: 74, men: 74, overall: 74.2, type: "Defensive" },
+      { id: 22, name: "Surya", atk: 74, def: 78, phy: 75, tac: 75, men: 76, overall: 75.6, type: "Pure Defensive" },
+      { id: 23, name: "Tikie", atk: 78, def: 80, phy: 76, tac: 79, men: 78, overall: 78.2, type: "Balance All Rounder" },
+      { id: 24, name: "Yosa", atk: 77, def: 78, phy: 74, tac: 77, men: 76, overall: 76.4, type: "Balance All Rounder" },
+    ];
+
+    const SM_PASSWORD = "rezim70";
+
+    // 3 dummy players representing opponents from outside Rezim70
+    // These appear in dropdowns but have NO stats tracked in the system
+    const EXTERNAL_PLAYERS = ['External A', 'External B', 'External C'];
+    function isExternal(name) { return EXTERNAL_PLAYERS.includes(name); }
+
+    // ============================================================
+    //  STATE
+    // ============================================================
+    let gameData = {
+      players: JSON.parse(JSON.stringify(DEFAULT_PLAYERS)),
+      pairs: [],
+      chemistry: {},
+      matches: [],
+      settings: { statCapMax: 95, statCapMin: 65, chemPerMatch: 2 }
+    };
+
+    let builderSelected = []; // Currently selected players in builder
+    let simSelectedPairs = []; // Pairs chosen for tournament
+    let smLoggedIn = false;
+    let qbSelected = [];
+
+    // ============================================================
+    //  PERSISTENCE
+    // ============================================================
+    function saveData() {
+      localStorage.setItem('rezimPadelData', JSON.stringify(gameData));
+    }
+    function loadData() {
+      const saved = localStorage.getItem('rezimPadelData');
+      if (saved) {
+        try {
+          const d = JSON.parse(saved);
+          gameData = { ...gameData, ...d };
+        } catch (e) { console.warn('Load failed, using defaults'); }
+      }
+    }
+    function resetData() {
+      if (!confirm('Reset semua data ke nilai awal? Match history dan chemistry akan DIHAPUS.')) return;
+      gameData.players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+      gameData.pairs = [];
+      gameData.chemistry = {};
+      gameData.matches = [];
+      saveData();
+      toast('✅ Data direset ke nilai awal', 'green');
+      renderSMPlayerStatus();
+      renderMatchHistory();
+    }
+
+    // ============================================================
+    //  UTILITY
+    // ============================================================
+    function getPlayer(name) { return gameData.players.find(p => p.name === name); }
+    function calcOverall(p) {
+      return +((p.atk + p.def + p.phy + p.tac + p.men) / 5).toFixed(1);
+    }
+    function typeColor(type) {
+      const map = {
+        'Aggressive Attacker': 'bg-yellow-500 text-slate-900',
+        'Attacker': 'bg-white text-slate-900',
+        'Balance All Rounder': 'bg-green-500 text-slate-900',
+        'Defensive': 'bg-slate-500 text-white',
+        'Pure Defensive': 'bg-blue-400 text-slate-900',
+      };
+      return map[type] || 'bg-slate-600 text-white';
+    }
+    function typeShort(type) {
+      const map = {
+        'Aggressive Attacker': 'Agg. Atk',
+        'Attacker': 'Attacker',
+        'Balance All Rounder': 'All Rounder',
+        'Defensive': 'Defensive',
+        'Pure Defensive': 'Pure Def',
+      };
+      return map[type] || type;
+    }
+    function ratingBar(value, color = 'amber') {
+      const colors = { amber: 'bg-amber-500', green: 'bg-green-500', blue: 'bg-blue-500', red: 'bg-red-500', purple: 'bg-purple-500' };
+      const pct = Math.min(100, Math.max(0, ((value - 65) / 30) * 100));
+      return `<div class="flex items-center gap-2">
+    <div class="flex-1 bg-slate-700 rounded-full h-1.5 overflow-hidden">
+      <div class="${colors[color] || 'bg-amber-500'} h-1.5 rounded-full stat-bar-fill" style="width:${pct}%"></div>
+    </div>
+    <span class="text-xs font-mono text-slate-300 w-7 text-right">${value}</span>
+  </div>`;
+    }
+    function formBadge(p) {
+      const streak = p.performance?.currentStreak || 0;
+      if (streak >= 5) return '<span class="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">🔥 Hot</span>';
+      if (streak >= 3) return '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">✅ Good</span>';
+      if (streak <= -3) return '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">❄️ Cold</span>';
+      return '<span class="text-xs bg-slate-600/50 text-slate-400 px-2 py-0.5 rounded-full">➡️ Normal</span>';
+    }
+    function statusBadge(status) {
+      const map = {
+        'Fit': '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">✅ Fit</span>',
+        'Minor Injury': '<span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">⚠️ Minor</span>',
+        'Injured': '<span class="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">❌ Injured</span>',
+        'On Break': '<span class="text-xs bg-slate-500/30 text-slate-400 px-2 py-0.5 rounded-full">🔒 Break</span>',
+      };
+      return map[status] || map['Fit'];
+    }
+    function toast(msg, color = 'amber') {
+      const el = document.getElementById('toast');
+      const inner = document.getElementById('toast-inner');
+      const colors = { amber: 'bg-amber-500 text-slate-900', green: 'bg-green-500 text-slate-900', red: 'bg-red-500 text-white', blue: 'bg-blue-500 text-white' };
+      inner.className = `flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-xl ${colors[color] || colors.amber}`;
+      inner.textContent = msg;
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 3000);
+    }
+
+    // ============================================================
+    //  CHEMISTRY ENGINE
+    // ============================================================
+    const TYPE_COMPAT = {
+      'Aggressive Attacker': { 'Pure Defensive': 95, 'Defensive': 88, 'Balance All Rounder': 82, 'Attacker': 75, 'Aggressive Attacker': 70 },
+      'Attacker': { 'Defensive': 90, 'Pure Defensive': 85, 'Balance All Rounder': 83, 'Aggressive Attacker': 75, 'Attacker': 70 },
+      'Balance All Rounder': { 'Balance All Rounder': 85, 'Aggressive Attacker': 82, 'Attacker': 83, 'Defensive': 84, 'Pure Defensive': 82 },
+      'Defensive': { 'Aggressive Attacker': 88, 'Attacker': 90, 'Balance All Rounder': 84, 'Pure Defensive': 80, 'Defensive': 70 },
+      'Pure Defensive': { 'Aggressive Attacker': 95, 'Attacker': 85, 'Balance All Rounder': 82, 'Defensive': 80, 'Pure Defensive': 70 },
+    };
+
+    function calcTypeCompat(t1, t2) {
+      return (TYPE_COMPAT[t1]?.[t2] || 75);
+    }
+
+    function calcStatsComplementary(p1, p2) {
+      const dims = ['atk', 'def', 'phy', 'tac', 'men'];
+      let totalScore = 0;
+      dims.forEach(d => {
+        const a = p1[d], b = p2[d];
+        const weak = Math.min(a, b), strong = Math.max(a, b);
+        const gap = strong - weak;
+        // Gap coverage: if one player covers the other's weakness
+        const coverScore = Math.min(100, 70 + gap * 1.5);
+        totalScore += coverScore;
+      });
+      return totalScore / dims.length;
+    }
+
+    function calcRatingSimilarity(p1, p2) {
+      const diff = Math.abs(p1.overall - p2.overall);
+      if (diff < 3) return 100;
+      if (diff <= 5) return 85;
+      return 70;
+    }
+
+    function calculateChemistry(p1, p2) {
+      const typeScore = calcTypeCompat(p1.type, p2.type);
+      const statsScore = calcStatsComplementary(p1, p2);
+      const ratingScore = calcRatingSimilarity(p1, p2);
+      const base = (typeScore * 0.4) + (statsScore * 0.4) + (ratingScore * 0.2);
+      // Add bonus from stored chemistry (from playing together)
+      const key = [p1.name, p2.name].sort().join('-');
+      const bonus = gameData.chemistry[key] || 0;
+      return Math.min(100, Math.round(base + bonus));
+    }
+
+    function getChemistryMultiplier(chem) {
+      if (chem >= 90) return 1.10;
+      if (chem >= 80) return 1.08;
+      if (chem >= 70) return 1.05;
+      return 1.00;
+    }
+
+    function calcPairRating(p1, p2) {
+      const chem = calculateChemistry(p1, p2);
+      const mult = getChemistryMultiplier(chem);
+      const base = (p1.overall + p2.overall) / 2;
+      // Apply injury modifier
+      const s1 = (p1.performance?.status === 'Minor Injury') ? 0.9 : 1;
+      const s2 = (p2.performance?.status === 'Minor Injury') ? 0.9 : 1;
+      const formBonus = getFormBonus(p1) + getFormBonus(p2);
+      return +((base * s1 * s2 * mult) + formBonus).toFixed(1);
+    }
+
+    function getFormBonus(p) {
+      const streak = p.performance?.currentStreak || 0;
+      if (streak >= 5) return 2.5;
+      if (streak >= 3) return 1.5;
+      if (streak <= -3) return -1.5;
+      return 0;
+    }
+
+    function chemLabel(score) {
+      if (score >= 90) return { label: '⭐ Luar Biasa', color: 'text-yellow-400' };
+      if (score >= 80) return { label: '✅ Sangat Baik', color: 'text-green-400' };
+      if (score >= 70) return { label: '👍 Baik', color: 'text-blue-400' };
+      return { label: '⚠️ Perlu Pengembangan', color: 'text-slate-400' };
+    }
+
+    function precomputeAllChemistry() {
+      const ps = gameData.players;
+      for (let i = 0; i < ps.length; i++) {
+        for (let j = i + 1; j < ps.length; j++) {
+          // Skip if already computed base (bonus stored separately)
+        }
+      }
+      // Find best chemistry pair for home display
+      let best = 0, bestNames = '';
+      for (let i = 0; i < ps.length; i++) {
+        for (let j = i + 1; j < ps.length; j++) {
+          const c = calculateChemistry(ps[i], ps[j]);
+          if (c > best) { best = c; bestNames = `${ps[i].name}+${ps[j].name}`; }
+        }
+      }
+      document.getElementById('stat-best-chemistry')?.textContent && (document.getElementById('stat-best-chemistry').textContent = best + '%');
+    }
+
+    // ============================================================
+    //  MATCH SIMULATION (AMERICANO)
+    // ============================================================
+    function categorizeWin(margin) {
+      if (margin >= 10) return 'DOMINANT';
+      if (margin >= 5) return 'COMFORTABLE';
+      return 'CLOSE';
+    }
+
+    function simulateAmericano(pairA, pairB) {
+      const ratingA = calcPairRating(pairA[0], pairA[1]);
+      const ratingB = calcPairRating(pairB[0], pairB[1]);
+      const chemA = calculateChemistry(pairA[0], pairA[1]);
+      const chemB = calculateChemistry(pairB[0], pairB[1]);
+
+      // Win probability with momentum
+      const ratingDiff = ratingA - ratingB;
+      const sigmoid = 1 / (1 + Math.exp(-ratingDiff * 0.15));
+      const winProbA = Math.min(0.9, Math.max(0.1, sigmoid + (Math.random() - 0.5) * 0.05));
+
+      let sA = 0, sB = 0;
+      const TOTAL = 21;
+      let momentum = 0;
+
+      for (let i = 0; i < TOTAL; i++) {
+        const adjustedProb = winProbA + momentum * 0.02;
+        if (Math.random() < Math.min(0.9, Math.max(0.1, adjustedProb))) {
+          sA++;
+          momentum = Math.min(3, momentum + 1);
+        } else {
+          sB++;
+          momentum = Math.max(-3, momentum - 1);
+        }
+      }
+
+      const winner = sA > sB ? 'A' : 'B';
+      const margin = Math.abs(sA - sB);
+      const cat = categorizeWin(margin);
+
+      let keyMoments = [];
+      if (cat === 'DOMINANT') keyMoments.push(`${winner === 'A' ? pairA[0].name : pairB[0].name} mendominasi dengan serangan tajam`);
+      if (cat === 'COMFORTABLE') keyMoments.push('Pertandingan berjalan satu arah di babak akhir');
+      if (cat === 'CLOSE') keyMoments.push('Pertandingan sangat ketat hingga poin terakhir');
+
+      return { scoreA: sA, scoreB: sB, winner, margin, category: cat, keyMoments, ratingA, ratingB, chemA, chemB };
+    }
+
+    function winProbability(pairA, pairB) {
+      const rA = calcPairRating(pairA[0], pairA[1]);
+      const rB = calcPairRating(pairB[0], pairB[1]);
+      const diff = rA - rB;
+      return Math.round(Math.min(90, Math.max(10, (1 / (1 + Math.exp(-diff * 0.15))) * 100)));
+    }
+
+    // ============================================================
+    //  ROUTING
+    // ============================================================
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(`page-${pageId}`)?.classList.add('active');
+      document.querySelectorAll('.nav-btn, .mob-nav').forEach(b => {
+        b.classList.remove('bg-amber-500', 'text-slate-900', 'font-black');
+        if (b.dataset.page === pageId) {
+          b.classList.add('bg-amber-500', 'text-slate-900', 'font-black');
+        }
+      });
+      // Page-specific init
+      if (pageId === 'players') renderPlayersPage();
+      if (pageId === 'builder') renderBuilderCards();
+      if (pageId === 'simulator') renderSimPage();
+      if (pageId === 'supermanager') initSuperManager();
+      if (pageId === 'home') renderHome();
+      window.scrollTo(0, 0);
+    }
+
+    // ============================================================
+    //  HOME PAGE
+    // ============================================================
+    function renderHome() {
+      const sorted = [...gameData.players].sort((a, b) => b.overall - a.overall).slice(0, 5);
+      document.getElementById('home-top-players').innerHTML = sorted.map((p, i) => {
+        const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+        return `<div class="flex items-center gap-3 py-2 ${i < 4 ? 'border-b border-slate-700/50' : ''}">
+      <span class="text-lg">${medals[i]}</span>
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-white text-sm">${p.name}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${typeColor(p.type)}">${typeShort(p.type)}</span>
+        </div>
+        <div class="flex gap-3 mt-1">
+          ${ratingBar(p.atk, 'amber')}
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-amber-400 font-black text-lg">${p.overall}</div>
+        <div class="text-xs text-slate-500">overall</div>
+      </div>
+    </div>`;
+      }).join('');
+
+      document.getElementById('stat-total-matches').textContent = gameData.matches.length;
+      document.getElementById('stat-top-rating').textContent = Math.max(...gameData.players.map(p => p.overall));
+      precomputeAllChemistry();
+    }
+
+    // ============================================================
+    //  PLAYERS PAGE
+    // ============================================================
+    function renderPlayersPage() {
+      const typeFilter = document.getElementById('filter-type')?.value || '';
+      const sortBy = document.getElementById('sort-by')?.value || 'overall';
+      let players = [...gameData.players];
+      if (typeFilter) players = players.filter(p => p.type === typeFilter);
+      if (sortBy === 'name') players.sort((a, b) => a.name.localeCompare(b.name));
+      else if (sortBy === 'overall') players.sort((a, b) => b.overall - a.overall);
+      else players.sort((a, b) => b[sortBy] - a[sortBy]);
+
+      document.getElementById('players-grid').innerHTML = players.map(p => playerCard(p, true)).join('');
+    }
+
+    function playerCard(p, showDetail = false) {
+      const winsTotal = p.performance?.wins || 0;
+      const lossesTotal = p.performance?.losses || 0;
+      const wr = winsTotal + lossesTotal > 0 ? Math.round(winsTotal / (winsTotal + lossesTotal) * 100) : '--';
+      return `<div class="player-card bg-slate-800 border border-slate-700 rounded-2xl p-4 ${showDetail ? 'cursor-pointer' : ''}" ${showDetail ? `onclick="openPlayerModal(${p.id})"` : ''}">
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <h3 class="font-bold text-white">${p.name}</h3>
+        <span class="text-xs px-2 py-0.5 rounded-full ${typeColor(p.type)}">${typeShort(p.type)}</span>
+      </div>
+      <div class="text-right">
+        <div class="text-2xl font-black text-amber-400">${p.overall}</div>
+        <div class="text-xs text-slate-500">overall</div>
+      </div>
+    </div>
+    <div class="space-y-1.5">
+      <div class="flex items-center gap-2"><span class="text-xs text-slate-400 w-20">⚔️ Attacking</span>${ratingBar(p.atk, 'amber')}</div>
+      <div class="flex items-center gap-2"><span class="text-xs text-slate-400 w-20">🛡️ Defense</span>${ratingBar(p.def, 'blue')}</div>
+      <div class="flex items-center gap-2"><span class="text-xs text-slate-400 w-20">💪 Physical</span>${ratingBar(p.phy, 'green')}</div>
+      <div class="flex items-center gap-2"><span class="text-xs text-slate-400 w-20">🧠 Tactical</span>${ratingBar(p.tac, 'purple')}</div>
+      <div class="flex items-center gap-2"><span class="text-xs text-slate-400 w-20">❤️ Mental</span>${ratingBar(p.men, 'red')}</div>
+    </div>
+    <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-700">
+      ${formBadge(p)}
+      ${statusBadge(p.performance?.status || 'Fit')}
+      <span class="text-xs text-slate-400">WR: ${wr}${typeof wr === 'number' ? '%' : ''}</span>
+    </div>
+  </div>`;
+    }
+
+    function openPlayerModal(id) {
+      const p = gameData.players.find(x => x.id === id);
+      if (!p) return;
+      const wins = p.performance?.wins || 0;
+      const losses = p.performance?.losses || 0;
+      const wr = wins + losses > 0 ? Math.round(wins / (wins + losses) * 100) : 0;
+      const mvps = p.performance?.mvpCount || 0;
+      document.getElementById('player-modal-content').innerHTML = `
+    <div class="p-6">
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h2 class="text-xl font-black text-white">${p.name}</h2>
+          <span class="text-sm px-2 py-1 rounded-full ${typeColor(p.type)}">${p.type}</span>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-2xl leading-none">×</button>
+      </div>
+      <div class="flex items-center justify-center gap-6 mb-6">
+        <div class="text-center"><div class="text-4xl font-black text-amber-400">${p.overall}</div><div class="text-xs text-slate-400">Overall</div></div>
+        <div class="text-center"><div class="text-2xl font-bold text-green-400">${wins}</div><div class="text-xs text-slate-400">Wins</div></div>
+        <div class="text-center"><div class="text-2xl font-bold text-red-400">${losses}</div><div class="text-xs text-slate-400">Losses</div></div>
+        <div class="text-center"><div class="text-2xl font-bold text-blue-400">${wr}%</div><div class="text-xs text-slate-400">Win Rate</div></div>
+        <div class="text-center"><div class="text-2xl font-bold text-yellow-400">${mvps}</div><div class="text-xs text-slate-400">MVP</div></div>
+      </div>
+      <div class="space-y-2 mb-4">
+        <div class="flex items-center gap-3"><span class="text-sm text-slate-300 w-24">⚔️ Attacking</span>${ratingBar(p.atk, 'amber')}</div>
+        <div class="flex items-center gap-3"><span class="text-sm text-slate-300 w-24">🛡️ Defense</span>${ratingBar(p.def, 'blue')}</div>
+        <div class="flex items-center gap-3"><span class="text-sm text-slate-300 w-24">💪 Physical</span>${ratingBar(p.phy, 'green')}</div>
+        <div class="flex items-center gap-3"><span class="text-sm text-slate-300 w-24">🧠 Tactical</span>${ratingBar(p.tac, 'purple')}</div>
+        <div class="flex items-center gap-3"><span class="text-sm text-slate-300 w-24">❤️ Mental</span>${ratingBar(p.men, 'red')}</div>
+      </div>
+      <div class="flex gap-2 justify-between">
+        ${formBadge(p)} ${statusBadge(p.performance?.status || 'Fit')}
+      </div>
+      ${p.performance?.lastUpdated ? `<div class="text-xs text-slate-500 mt-3">Terakhir update: ${p.performance.lastUpdated}</div>` : ''}
+    </div>`;
+      document.getElementById('player-modal').classList.remove('hidden');
+    }
+    function closeModal() { document.getElementById('player-modal').classList.add('hidden'); }
+
+    // ============================================================
+    //  PAIR BUILDER
+    // ============================================================
+    function renderBuilderCards() {
+      const search = document.getElementById('search-builder')?.value.toLowerCase() || '';
+      const typeFilter = document.getElementById('filter-builder-type')?.value || '';
+      let players = [...gameData.players];
+      if (search) players = players.filter(p => p.name.toLowerCase().includes(search));
+      if (typeFilter) players = players.filter(p => p.type === typeFilter);
+      players.sort((a, b) => b.overall - a.overall);
+
+      document.getElementById('builder-player-list').innerHTML = players.map(p => {
+        const sel = builderSelected.find(x => x.id === p.id);
+        const injured = p.performance?.status === 'Injured';
+        return `<div class="player-card bg-slate-800 border ${sel ? 'border-amber-500 bg-amber-500/10' : 'border-slate-700'} ${injured ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} rounded-xl p-3 transition-all" onclick="${injured ? '' : 'toggleBuilderPlayer(' + p.id + ')'}">
+      <div class="flex justify-between items-start mb-2">
+        <div class="font-semibold text-sm text-white truncate">${p.name}</div>
+        <span class="text-amber-400 font-bold text-sm ml-1">${p.overall}</span>
+      </div>
+      <div class="text-xs px-1.5 py-0.5 rounded-full inline-block ${typeColor(p.type)} mb-2">${typeShort(p.type)}</div>
+      ${sel ? '<div class="text-xs text-amber-400 font-bold">✓ Dipilih</div>' : ''}
+      ${injured ? '<div class="text-xs text-red-400">❌ Cedera</div>' : ''}
+    </div>`;
+      }).join('');
+
+      renderPairsList();
+    }
+
+    function toggleBuilderPlayer(id) {
+      const p = gameData.players.find(x => x.id === id);
+      const idx = builderSelected.findIndex(x => x.id === id);
+      if (idx >= 0) { builderSelected.splice(idx, 1); }
+      else {
+        if (builderSelected.length >= 2) { toast('Maksimal 2 pemain per pair', 'amber'); return; }
+        builderSelected.push(p);
+      }
+      renderBuilderCards();
+      renderChemistryPanel();
+    }
+
+    function renderChemistryPanel() {
+      const panel = document.getElementById('chemistry-panel');
+      const addBtn = document.getElementById('add-pair-btn-container');
+      if (builderSelected.length < 2) {
+        const names = builderSelected.map(p => p.name).join(' + ');
+        panel.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">${builderSelected.length === 1 ? `<div class="text-amber-400 font-bold mb-2">${names}</div>Pilih 1 pemain lagi` : 'Pilih 2 pemain untuk melihat chemistry'}</div>`;
+        addBtn?.classList.add('hidden');
+        return;
+      }
+      const [p1, p2] = builderSelected;
+      const chem = calculateChemistry(p1, p2);
+      const pairRating = calcPairRating(p1, p2);
+      const { label, color } = chemLabel(chem);
+      const chemAngle = (chem / 100) * 283;
+      panel.innerHTML = `
+    <div class="text-center mb-4">
+      <svg width="120" height="120" viewBox="0 0 120 120" class="mx-auto">
+        <circle cx="60" cy="60" r="45" fill="none" stroke="#1e293b" stroke-width="10"/>
+        <circle cx="60" cy="60" r="45" fill="none" stroke="#f59e0b" stroke-width="10"
+          stroke-dasharray="283" stroke-dashoffset="${283 - chemAngle}"
+          stroke-linecap="round" transform="rotate(-90 60 60)" class="chemistry-ring"/>
+        <text x="60" y="55" text-anchor="middle" fill="#f59e0b" font-size="22" font-weight="900" font-family="Inter">${chem}%</text>
+        <text x="60" y="72" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter">CHEMISTRY</text>
+      </svg>
+      <div class="font-bold ${color} text-sm">${label}</div>
+    </div>
+    <div class="space-y-2 mb-4">
+      <div class="flex justify-between items-center bg-slate-700/50 rounded-xl p-3">
+        <div class="text-center flex-1">
+          <div class="font-bold text-white">${p1.name}</div>
+          <div class="text-xs text-slate-400">${p1.overall} overall</div>
+        </div>
+        <div class="text-xs text-slate-500 px-2">+</div>
+        <div class="text-center flex-1">
+          <div class="font-bold text-white">${p2.name}</div>
+          <div class="text-xs text-slate-400">${p2.overall} overall</div>
+        </div>
+      </div>
+      <div class="bg-slate-700/50 rounded-xl p-3">
+        <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Pair Rating</span><span class="text-amber-400 font-bold text-base">${pairRating}</span></div>
+        <div class="flex justify-between text-xs text-slate-400"><span>Tipe Compat.</span><span class="text-white">${calcTypeCompat(p1.type, p2.type)}%</span></div>
+        <div class="flex justify-between text-xs text-slate-400"><span>Stats Complement</span><span class="text-white">${Math.round(calcStatsComplementary(p1, p2))}%</span></div>
+        <div class="flex justify-between text-xs text-slate-400"><span>Rating Similarity</span><span class="text-white">${calcRatingSimilarity(p1, p2)}%</span></div>
+      </div>
+    </div>
+    <div class="text-xs text-slate-400 space-y-1">
+      <div class="flex gap-2"><span class="text-amber-400">⚡ Kekuatan:</span>${getBestStat(p1)} + ${getBestStat(p2)}</div>
+      <div class="flex gap-2"><span class="text-blue-400">🛡️ Perlindungan:</span>${coverageNote(p1, p2)}</div>
+    </div>`;
+      addBtn?.classList.remove('hidden');
+    }
+
+    function getBestStat(p) {
+      const stats = [{ k: 'atk', l: 'Attacking' }, { k: 'def', l: 'Defense' }, { k: 'phy', l: 'Physical' }, { k: 'tac', l: 'Tactical' }, { k: 'men', l: 'Mental' }];
+      return stats.sort((a, b) => p[b.k] - p[a.k])[0].l;
+    }
+    function coverageNote(p1, p2) {
+      const dims = [{ k: 'atk', l: 'Attacking' }, { k: 'def', l: 'Defense' }, { k: 'phy', l: 'Physical' }, { k: 'tac', l: 'Tactical' }, { k: 'men', l: 'Mental' }];
+      let note = '';
+      dims.forEach(d => {
+        if (p1[d.k] < 78 && p2[d.k] >= 80) note = `${p2.name} kuatkan ${d.l} ${p1.name}`;
+        else if (p2[d.k] < 78 && p1[d.k] >= 80) note = `${p1.name} kuatkan ${d.l} ${p2.name}`;
+      });
+      return note || 'Pair seimbang di semua dimensi';
+    }
+
+    function addCurrentPair() {
+      if (builderSelected.length < 2) return;
+      const [p1, p2] = builderSelected;
+      const key = [p1.name, p2.name].sort().join('-');
+      if (gameData.pairs.find(pair => [pair[0].name, pair[1].name].sort().join('-') === key)) {
+        toast('Pair ini sudah ada di daftar!', 'amber'); return;
+      }
+      gameData.pairs.push([p1, p2]);
+      saveData();
+      builderSelected = [];
+      renderBuilderCards();
+      renderChemistryPanel();
+      renderPairsList();
+      toast(`✅ ${p1.name} + ${p2.name} ditambahkan!`, 'green');
+    }
+
+    function clearAllPairs() {
+      if (!confirm('Hapus semua pair?')) return;
+      gameData.pairs = [];
+      saveData();
+      renderPairsList();
+    }
+
+    function removePair(idx) {
+      gameData.pairs.splice(idx, 1);
+      saveData();
+      renderPairsList();
+    }
+
+    function renderPairsList() {
+      const list = document.getElementById('pairs-list');
+      const empty = document.getElementById('pairs-empty');
+      if (!gameData.pairs.length) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden');
+      list.innerHTML = gameData.pairs.map(([p1, p2], idx) => {
+        const chem = calculateChemistry(p1, p2);
+        const pr = calcPairRating(p1, p2);
+        const { color } = chemLabel(chem);
+        return `<div class="flex items-center gap-3 bg-slate-700/50 rounded-xl p-3">
+      <div class="flex-1">
+        <div class="font-semibold text-white text-sm">${p1.name} <span class="text-slate-400">+</span> ${p2.name}</div>
+        <div class="flex gap-3 mt-1">
+          <span class="text-xs ${color}">⚗️ ${chem}%</span>
+          <span class="text-xs text-amber-400">⭐ ${pr}</span>
+        </div>
+      </div>
+      <button onclick="removePair(${idx})" class="text-slate-500 hover:text-red-400 transition-colors">✕</button>
+    </div>`;
+      }).join('');
+    }
+
+    function sendPairsToSimulator() {
+      if (!gameData.pairs.length) { toast('Belum ada pair! Buat pair dulu.', 'amber'); return; }
+      showPage('simulator');
+      renderSimPage();
+    }
+
+    // ============================================================
+    //  SIMULATOR
+    // ============================================================
+    let simSelectedPairsForTournament = [];
+
+    function renderSimPage() {
+      renderSimPairSelector();
+      renderSimQuickBuilder();
+      updateSimStartBtn();
+    }
+
+    function renderSimPairSelector() {
+      const size = parseInt(document.getElementById('sim-bracket-size')?.value || 8);
+      document.getElementById('sim-target-count').textContent = size;
+      const allPairs = gameData.pairs;
+      if (!allPairs.length) {
+        document.getElementById('sim-pair-selector').innerHTML = `<div class="text-xs text-slate-400 py-4 text-center">Belum ada pair.<br>Buat pair di Pair Builder atau gunakan Quick Builder di sebelah kanan.</div>`;
+        return;
+      }
+      document.getElementById('sim-pair-selector').innerHTML = allPairs.map(([p1, p2], idx) => {
+        const chem = calculateChemistry(p1, p2);
+        const pr = calcPairRating(p1, p2);
+        const sel = simSelectedPairsForTournament.some(s => s.idx === idx);
+        return `<div class="flex items-center gap-2 bg-slate-700/50 hover:bg-slate-600/50 rounded-xl p-2.5 cursor-pointer transition-colors ${sel ? 'border border-amber-500' : ''}" onclick="toggleSimPair(${idx})">
+      <div class="w-5 h-5 rounded border-2 ${sel ? 'border-amber-500 bg-amber-500' : 'border-slate-500'} flex items-center justify-center text-slate-900 text-xs font-bold flex-shrink-0">${sel ? '✓' : ''}</div>
+      <div class="flex-1 min-w-0">
+        <div class="font-medium text-white text-xs truncate">${p1.name} + ${p2.name}</div>
+        <div class="text-xs text-slate-400">⭐${pr} · ⚗️${chem}%</div>
+      </div>
+    </div>`;
+      }).join('');
+    }
+
+    function toggleSimPair(idx) {
+      const size = parseInt(document.getElementById('sim-bracket-size').value);
+      const existing = simSelectedPairsForTournament.findIndex(s => s.idx === idx);
+      if (existing >= 0) { simSelectedPairsForTournament.splice(existing, 1); }
+      else {
+        if (simSelectedPairsForTournament.length >= size) { toast(`Maksimal ${size} pair!`, 'amber'); return; }
+        simSelectedPairsForTournament.push({ idx, pair: gameData.pairs[idx] });
+      }
+      document.getElementById('sim-selected-count').textContent = simSelectedPairsForTournament.length;
+      renderSimPairSelector();
+      updateSimStartBtn();
+    }
+
+    function updateSimStartBtn() {
+      const size = parseInt(document.getElementById('sim-bracket-size')?.value || 8);
+      const btn = document.getElementById('sim-start-btn');
+      btn.disabled = simSelectedPairsForTournament.length !== size;
+      btn.textContent = simSelectedPairsForTournament.length === size ? '🚀 Mulai Simulasi' : `Pilih ${size - simSelectedPairsForTournament.length} pair lagi`;
+    }
+
+    function autoSelectPairs() {
+      const size = parseInt(document.getElementById('sim-bracket-size').value);
+      simSelectedPairsForTournament = [];
+      const sorted = [...gameData.pairs.entries()].sort(([ia, a], [ib, b]) => calcPairRating(b[0], b[1]) - calcPairRating(a[0], a[1]));
+      sorted.slice(0, size).forEach(([idx, pair]) => simSelectedPairsForTournament.push({ idx, pair }));
+      document.getElementById('sim-selected-count').textContent = simSelectedPairsForTournament.length;
+      renderSimPairSelector();
+      updateSimStartBtn();
+    }
+
+    function renderSimQuickBuilder() {
+      const usedNames = new Set(gameData.pairs.flatMap(([p1, p2]) => [p1.name, p2.name]));
+      const players = gameData.players.sort((a, b) => b.overall - a.overall);
+      document.getElementById('sim-player-quick-list').innerHTML = players.map(p => {
+        const sel = qbSelected.find(x => x.id === p.id);
+        const injured = p.performance?.status === 'Injured';
+        return `<div class="text-xs bg-slate-700/50 hover:bg-slate-600/50 ${sel ? 'border-amber-500 border bg-amber-500/10' : ''} ${injured ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} rounded-lg px-2 py-1.5 transition-colors truncate" onclick="${injured ? '' : 'qbToggle(' + p.id + ')'}">
+      ${sel ? '✓ ' : ''}${p.name} <span class="text-slate-400">${p.overall}</span>
+    </div>`;
+      }).join('');
+    }
+
+    function qbToggle(id) {
+      const p = gameData.players.find(x => x.id === id);
+      const idx = qbSelected.findIndex(x => x.id === id);
+      if (idx >= 0) { qbSelected.splice(idx, 1); }
+      else {
+        if (qbSelected.length >= 2) { toast('Maks 2 pemain per pair', 'amber'); return; }
+        qbSelected.push(p);
+      }
+      document.getElementById('qb-player1').textContent = qbSelected[0]?.name || '--';
+      document.getElementById('qb-player2').textContent = qbSelected[1]?.name || '--';
+      document.getElementById('qb-add-btn').disabled = qbSelected.length < 2;
+      renderSimQuickBuilder();
+    }
+
+    function addQuickPair() {
+      if (qbSelected.length < 2) return;
+      const [p1, p2] = qbSelected;
+      const key = [p1.name, p2.name].sort().join('-');
+      if (!gameData.pairs.find(x => [x[0].name, x[1].name].sort().join('-') === key)) {
+        gameData.pairs.push([p1, p2]);
+        saveData();
+      }
+      qbSelected = [];
+      document.getElementById('qb-player1').textContent = '--';
+      document.getElementById('qb-player2').textContent = '--';
+      document.getElementById('qb-add-btn').disabled = true;
+      renderSimPairSelector();
+      renderSimQuickBuilder();
+      toast(`✅ ${p1.name} + ${p2.name} ditambahkan!`, 'green');
+    }
+
+    function startTournament() {
+      const name = document.getElementById('sim-tournament-name').value || 'Rezim Cup';
+      const pairs = simSelectedPairsForTournament.map(s => s.pair);
+      const size = pairs.length;
+
+      document.getElementById('sim-placeholder').classList.add('hidden');
+      const display = document.getElementById('sim-bracket-display');
+      display.classList.remove('hidden');
+      display.innerHTML = `<div class="text-center py-12 text-slate-400"><div class="text-4xl spinner inline-block mb-3">⚙️</div><div>Simulasi berjalan...</div></div>`;
+
+      setTimeout(() => {
+        const result = runKnockoutTournament(pairs, name);
+        renderBracket(result, display);
+      }, 600);
+    }
+
+    function runKnockoutTournament(pairs, name) {
+      let rounds = [];
+      let currentPairs = [...pairs];
+
+      // Shuffle for bracket excitement
+      currentPairs = currentPairs.sort(() => Math.random() - 0.5);
+
+      while (currentPairs.length > 1) {
+        const roundMatches = [];
+        const nextRound = [];
+        for (let i = 0; i < currentPairs.length; i += 2) {
+          if (i + 1 >= currentPairs.length) { nextRound.push(currentPairs[i]); continue; }
+          const pA = currentPairs[i], pB = currentPairs[i + 1];
+          const res = simulateAmericano(pA, pB);
+          const winner = res.winner === 'A' ? pA : pB;
+          const loser = res.winner === 'A' ? pB : pA;
+          roundMatches.push({ pA, pB, res, winner, loser });
+          nextRound.push(winner);
+        }
+        rounds.push(roundMatches);
+        currentPairs = nextRound;
+      }
+      return { name, champion: currentPairs[0], rounds };
+    }
+
+    function pairName(pair) { return `${pair[0].name} + ${pair[1].name}`; }
+
+    function renderBracket(result, container) {
+      const { name, champion, rounds } = result;
+      const catColor = { DOMINANT: 'text-red-400', COMFORTABLE: 'text-amber-400', CLOSE: 'text-blue-400' };
+
+      let html = `<div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-6">
+    <div class="text-center mb-6">
+      <div class="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">🏆 ${name}</div>
+      <h2 class="text-2xl font-black text-white">Tournament Results</h2>
+    </div>
+    <div class="bracket-container">
+      <div class="flex gap-6 min-w-max">`;
+
+      rounds.forEach((round, ri) => {
+        const roundNames = ['Quarter-final', 'Semi-final', 'Final', 'Grand Final'];
+        const roundName = roundNames[ri] || `Round ${ri + 1}`;
+        html += `<div class="bracket-round flex flex-col justify-around gap-4" style="min-width:220px">
+      <div class="text-xs text-slate-400 font-bold uppercase tracking-wider text-center mb-2">${roundName}</div>`;
+        round.forEach(m => {
+          const winA = m.res.winner === 'A';
+          html += `<div class="space-y-1">
+        <div class="bracket-slot ${winA ? 'winner' : ''} flex justify-between items-center">
+          <span class="${winA ? 'text-amber-400 font-bold' : 'text-slate-400'}">${pairName(m.pA)}</span>
+          <span class="font-black text-lg ${winA ? 'text-amber-400' : 'text-slate-500'}">${m.res.scoreA}</span>
+        </div>
+        <div class="bracket-slot ${!winA ? 'winner' : ''} flex justify-between items-center">
+          <span class="${!winA ? 'text-amber-400 font-bold' : 'text-slate-400'}">${pairName(m.pB)}</span>
+          <span class="font-black text-lg ${!winA ? 'text-amber-400' : 'text-slate-500'}">${m.res.scoreB}</span>
+        </div>
+        <div class="text-xs ${catColor[m.res.category] || 'text-slate-400'} text-center">${m.res.category} · ${m.res.keyMoments[0] || ''}</div>
+      </div>`;
+        });
+        html += `</div>`;
+      });
+
+      // Champion column
+      html += `<div class="bracket-round flex flex-col justify-center" style="min-width:200px">
+    <div class="text-xs text-slate-400 font-bold uppercase tracking-wider text-center mb-2">🏆 Champion</div>
+    <div class="bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-2 border-amber-500 rounded-xl p-4 text-center pulse-amber">
+      <div class="text-3xl mb-2">🥇</div>
+      <div class="font-black text-amber-400 text-lg">${pairName(champion)}</div>
+      <div class="text-xs text-slate-400 mt-1">Pair Rating: ${calcPairRating(champion[0], champion[1])}</div>
+      <div class="text-xs text-green-400 mt-0.5">Chemistry: ${calculateChemistry(champion[0], champion[1])}%</div>
+    </div>
+  </div>`;
+
+      html += `</div></div>`;
+
+      // Match Summary
+      html += `<div class="mt-6 border-t border-slate-700 pt-5">
+    <h3 class="font-semibold text-white mb-3">📊 Ringkasan Semua Match</h3>
+    <div class="space-y-2">`;
+      rounds.forEach((round, ri) => {
+        const roundNames = ['Quarter-final', 'Semi-final', 'Final', 'Grand Final'];
+        html += `<div class="text-xs text-slate-400 font-bold mt-3 mb-1">${roundNames[ri] || 'Round ' + ri}</div>`;
+        round.forEach(m => {
+          const winA = m.res.winner === 'A';
+          html += `<div class="flex items-center gap-3 bg-slate-700/40 rounded-xl p-3 text-sm">
+        <span class="${winA ? 'text-amber-400 font-bold' : 'text-slate-400'}">${pairName(m.pA)}</span>
+        <div class="flex gap-1 items-center">
+          <span class="font-black text-lg ${winA ? 'text-amber-400' : 'text-slate-500'}">${m.res.scoreA}</span>
+          <span class="text-slate-500 text-xs">-</span>
+          <span class="font-black text-lg ${!winA ? 'text-amber-400' : 'text-slate-500'}">${m.res.scoreB}</span>
+        </div>
+        <span class="${!winA ? 'text-amber-400 font-bold' : 'text-slate-400'}">${pairName(m.pB)}</span>
+        <span class="ml-auto text-xs ${catColor[m.res.category] || ''}">${m.res.category}</span>
+      </div>`;
+        });
+      });
+      html += `</div></div>`;
+      html += `<div class="flex gap-3 mt-6">
+    <button onclick="resetTournament()" class="flex-1 border border-slate-600 hover:border-slate-400 text-slate-300 font-semibold py-2.5 rounded-xl transition-colors text-sm">🔄 Setup Ulang</button>
+    <button onclick="rerunTournament()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-2.5 rounded-xl transition-colors text-sm">▶️ Simulasi Ulang</button>
+  </div>`;
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    function resetTournament() {
+      simSelectedPairsForTournament = [];
+      document.getElementById('sim-placeholder').classList.remove('hidden');
+      document.getElementById('sim-bracket-display').classList.add('hidden');
+      renderSimPairSelector();
+      updateSimStartBtn();
+    }
+    function rerunTournament() { startTournament(); }
+
+    // ============================================================
+    //  SUPER MANAGER
+    // ============================================================
+    function initSuperManager() {
+      if (!smLoggedIn) {
+        document.getElementById('sm-login-gate').classList.remove('hidden');
+        document.getElementById('sm-dashboard').classList.add('hidden');
+      } else {
+        document.getElementById('sm-login-gate').classList.add('hidden');
+        document.getElementById('sm-dashboard').classList.remove('hidden');
+        populateMatchDropdowns();
+        renderSMPlayerStatus();
+        renderMatchHistory();
+        // Set today's date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('match-date').value = today;
+      }
+    }
+    function smLogin() {
+      const pw = document.getElementById('sm-password-input').value;
+      if (pw === SM_PASSWORD) {
+        smLoggedIn = true;
+        document.getElementById('sm-login-error').classList.add('hidden');
+        initSuperManager();
+      } else {
+        document.getElementById('sm-login-error').classList.remove('hidden');
+      }
+    }
+    function smLogout() {
+      smLoggedIn = false;
+      document.getElementById('sm-dashboard').classList.add('hidden');
+      document.getElementById('sm-login-gate').classList.remove('hidden');
+      document.getElementById('sm-password-input').value = '';
+    }
+    function smShowTab(tab) {
+      document.querySelectorAll('.sm-tab-content').forEach(t => t.classList.add('hidden'));
+      document.getElementById(`sm-tab-${tab}`)?.classList.remove('hidden');
+      document.querySelectorAll('.sm-tab').forEach(b => {
+        if (b.dataset.tab === tab) b.className = 'sm-tab active-tab bg-amber-500 text-slate-900 font-bold text-sm px-4 py-2 rounded-lg';
+        else b.className = 'sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg';
+      });
+      if (tab === 'players') renderSMPlayerStatus();
+      if (tab === 'history') renderMatchHistory();
+      if (tab === 'guide') renderGuidePage();
+    }
+
+    // ============================================================
+    //  PANDUAN ALGORITMA — Embedded guide for Super Manager
+    // ============================================================
+    const GUIDE_DATA = [
+      {
+        id: 'stats',
+        icon: '📊',
+        title: '1. Dimensi Statistik Pemain',
+        content: `
+          <p class="text-xs text-slate-400 mb-3">Setiap pemain memiliki 5 dimensi statistik, rentang nilai <strong class="text-white">65&ndash;95</strong>.</p>
+          <table class="w-full text-xs border-collapse mb-3">
+            <thead><tr class="bg-slate-700/80">
+              <th class="text-left p-2 border border-slate-600 text-amber-400">Kode</th>
+              <th class="text-left p-2 border border-slate-600 text-amber-400">Dimensi</th>
+              <th class="text-left p-2 border border-slate-600 text-amber-400">Deskripsi</th>
+            </tr></thead>
+            <tbody>
+              <tr><td class="p-2 border border-slate-700 font-mono text-amber-300">atk</td><td class="p-2 border border-slate-700 text-slate-200">Attacking &amp; Power</td><td class="p-2 border border-slate-700 text-slate-400">Serangan, smash, agresivitas</td></tr>
+              <tr><td class="p-2 border border-slate-700 font-mono text-amber-300">def</td><td class="p-2 border border-slate-700 text-slate-200">Defense &amp; Control</td><td class="p-2 border border-slate-700 text-slate-400">Bertahan, akurasi, kontrol bola</td></tr>
+              <tr><td class="p-2 border border-slate-700 font-mono text-amber-300">phy</td><td class="p-2 border border-slate-700 text-slate-200">Physical Agility</td><td class="p-2 border border-slate-700 text-slate-400">Stamina, kecepatan, kelincahan</td></tr>
+              <tr><td class="p-2 border border-slate-700 font-mono text-amber-300">tac</td><td class="p-2 border border-slate-700 text-slate-200">Tactical &amp; Technical</td><td class="p-2 border border-slate-700 text-slate-400">Strategi, positioning, teknik</td></tr>
+              <tr><td class="p-2 border border-slate-700 font-mono text-amber-300">men</td><td class="p-2 border border-slate-700 text-slate-200">Mental Strength</td><td class="p-2 border border-slate-700 text-slate-400">Tekanan, konsistensi, clutch</td></tr>
+            </tbody>
+          </table>
+          <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700">Overall = (atk + def + phy + tac + men) / 5</div>
+        `
+      },
+      {
+        id: 'chemistry',
+        icon: '⚗️',
+        title: '2. Algoritma Chemistry Score (0–100)',
+        content: `
+          <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700 mb-3">
+            Chemistry = (TypeCompat &times; 0.40) + (StatsComplement &times; 0.40) + (RatingSimilarity &times; 0.20) + HistoryBonus
+          </div>
+          <p class="text-xs text-amber-400 font-semibold mb-2">🔷 Komponen 1 &mdash; Type Compatibility (40%)</p>
+          <table class="w-full text-xs border-collapse mb-3">
+            <thead><tr class="bg-slate-700/80">
+              <th class="p-1.5 border border-slate-600 text-slate-300">Tipe</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300">Agg.Atk</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300">Attacker</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300">All Rounder</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300">Defensive</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300">Pure Def</th>
+            </tr></thead>
+            <tbody class="text-center">
+              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Agg.Atk</td><td class="p-1.5 border border-slate-700 text-slate-400">70%</td><td class="p-1.5 border border-slate-700 text-slate-400">75%</td><td class="p-1.5 border border-slate-700 text-slate-400">82%</td><td class="p-1.5 border border-slate-700 text-slate-400">88%</td><td class="p-1.5 border border-slate-700 text-amber-400 font-bold">95%</td></tr>
+              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Attacker</td><td class="p-1.5 border border-slate-700 text-slate-400">75%</td><td class="p-1.5 border border-slate-700 text-slate-400">70%</td><td class="p-1.5 border border-slate-700 text-slate-400">83%</td><td class="p-1.5 border border-slate-700 text-amber-400 font-bold">90%</td><td class="p-1.5 border border-slate-700 text-slate-400">85%</td></tr>
+              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">All Rounder</td><td class="p-1.5 border border-slate-700 text-slate-400">82%</td><td class="p-1.5 border border-slate-700 text-slate-400">83%</td><td class="p-1.5 border border-slate-700 text-green-400 font-bold">85%</td><td class="p-1.5 border border-slate-700 text-slate-400">84%</td><td class="p-1.5 border border-slate-700 text-slate-400">82%</td></tr>
+              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Defensive</td><td class="p-1.5 border border-slate-700 text-slate-400">88%</td><td class="p-1.5 border border-slate-700 text-amber-400 font-bold">90%</td><td class="p-1.5 border border-slate-700 text-slate-400">84%</td><td class="p-1.5 border border-slate-700 text-slate-400">70%</td><td class="p-1.5 border border-slate-700 text-slate-400">80%</td></tr>
+              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Pure Def</td><td class="p-1.5 border border-slate-700 text-amber-400 font-bold">95%</td><td class="p-1.5 border border-slate-700 text-slate-400">85%</td><td class="p-1.5 border border-slate-700 text-slate-400">82%</td><td class="p-1.5 border border-slate-700 text-slate-400">80%</td><td class="p-1.5 border border-slate-700 text-slate-400">70%</td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-amber-400 font-semibold mb-2">🔷 Komponen 2 &mdash; Stats Complementary (40%)</p>
+          <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700 mb-3">
+            coverScore(dim) = min(100, 70 + |A-B| &times; 1.5)<br>
+            StatsComplement = avg(coverScore semua 5 dimensi)
+          </div>
+          <p class="text-xs text-amber-400 font-semibold mb-2">🔷 Komponen 3 &mdash; Rating Similarity (20%)</p>
+          <table class="w-full text-xs border-collapse mb-2">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Selisih Overall</th><th class="text-left p-2 border border-slate-600 text-amber-400">Skor</th></tr></thead>
+            <tbody>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">&lt; 3 poin</td><td class="p-2 border border-slate-700 text-green-400">100%</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">3 &ndash; 5 poin</td><td class="p-2 border border-slate-700 text-slate-300">85%</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">&gt; 5 poin</td><td class="p-2 border border-slate-700 text-slate-400">70%</td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-slate-400"><span class="text-blue-400">⚡</span> HistoryBonus = +2 per match (jika memenuhi syarat chemistry), maks kumulatif +15</p>
+        `
+      },
+      {
+        id: 'pairrating',
+        icon: '⭐',
+        title: '3. Algoritma Pair Rating',
+        content: `
+          <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700 mb-3">
+            Base      = (Overall_P1 + Overall_P2) / 2<br>
+            PairRating = Base &times; InjuryP1 &times; InjuryP2 &times; ChemMult + FormBonus
+          </div>
+          <p class="text-xs text-amber-400 font-semibold mb-2">Chemistry Multiplier</p>
+          <table class="w-full text-xs border-collapse mb-3">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Chemistry Score</th><th class="text-left p-2 border border-slate-600 text-amber-400">Multiplier</th></tr></thead>
+            <tbody>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">90 &ndash; 100%</td><td class="p-2 border border-slate-700 text-yellow-400 font-bold">1.10&times;</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">80 &ndash; 89%</td><td class="p-2 border border-slate-700 text-amber-400 font-bold">1.08&times;</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">70 &ndash; 79%</td><td class="p-2 border border-slate-700 text-slate-300">1.05&times;</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">&lt; 70%</td><td class="p-2 border border-slate-700 text-slate-400">1.00&times;</td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-amber-400 font-semibold mb-2">Form Bonus (per pemain)</p>
+          <table class="w-full text-xs border-collapse">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Status</th><th class="text-left p-2 border border-slate-600 text-amber-400">Syarat</th><th class="text-left p-2 border border-slate-600 text-amber-400">Bonus</th></tr></thead>
+            <tbody>
+              <tr><td class="p-2 border border-slate-700">🔥 Hot</td><td class="p-2 border border-slate-700 text-slate-400">Streak &ge;5 win</td><td class="p-2 border border-slate-700 text-green-400">+2.5</td></tr>
+              <tr><td class="p-2 border border-slate-700">✅ Good</td><td class="p-2 border border-slate-700 text-slate-400">Streak &ge;3 win</td><td class="p-2 border border-slate-700 text-green-400">+1.5</td></tr>
+              <tr><td class="p-2 border border-slate-700">➡️ Normal</td><td class="p-2 border border-slate-700 text-slate-400">0&ndash;2 win</td><td class="p-2 border border-slate-700 text-slate-400">0</td></tr>
+              <tr><td class="p-2 border border-slate-700">❄️ Cold</td><td class="p-2 border border-slate-700 text-slate-400">Streak &le;-3</td><td class="p-2 border border-slate-700 text-red-400">&minus;1.5</td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-slate-400 mt-2">InjuryMod = 0.9 jika Minor Injury, 1.0 jika Fit. Total FormBonus = P1 + P2.</p>
+        `
+      },
+      {
+        id: 'winprob',
+        icon: '🎯',
+        title: '4. Win Probability (Fungsi Sigmoid)',
+        content: `
+          <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700 mb-3">
+            diff  = PairRating_A &minus; PairRating_B<br>
+            probA = clamp( 1 / (1 + e<sup>&minus;diff&times;0.15</sup>), min=0.10, max=0.90 )<br>
+            probB = 1 &minus; probA
+          </div>
+          <table class="w-full text-xs border-collapse">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Selisih Rating</th><th class="text-left p-2 border border-slate-600 text-amber-400">Win Prob. Unggulan</th></tr></thead>
+            <tbody>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">0 (setara)</td><td class="p-2 border border-slate-700 text-slate-300">~50%</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">3</td><td class="p-2 border border-slate-700 text-slate-300">~58%</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">5</td><td class="p-2 border border-slate-700 text-amber-400">~65%</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">10</td><td class="p-2 border border-slate-700 text-orange-400">~78%</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">15+</td><td class="p-2 border border-slate-700 text-red-400">~86&ndash;90% (di-cap)</td></tr>
+            </tbody>
+          </table>
+        `
+      },
+      {
+        id: 'categories',
+        icon: '🏆',
+        title: '5. Kategorisasi Hasil & Update Stats',
+        content: `
+          <p class="text-xs text-amber-400 font-semibold mb-2">Kategori Kemenangan (berdasarkan margin skor)</p>
+          <table class="w-full text-xs border-collapse mb-4">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Margin</th><th class="text-left p-2 border border-slate-600 text-amber-400">Kategori</th><th class="text-left p-2 border border-slate-600 text-amber-400">Contoh Skor</th></tr></thead>
+            <tbody>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">&ge;10 poin</td><td class="p-2 border border-slate-700 text-red-400 font-bold">DOMINANT</td><td class="p-2 border border-slate-700 text-slate-400">17-4, 18-3</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">5&ndash;9 poin</td><td class="p-2 border border-slate-700 text-amber-400 font-bold">COMFORTABLE</td><td class="p-2 border border-slate-700 text-slate-400">13-8, 14-7</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">1&ndash;4 poin</td><td class="p-2 border border-slate-700 text-blue-400 font-bold">CLOSE</td><td class="p-2 border border-slate-700 text-slate-400">11-10, 12-9</td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-amber-400 font-semibold mb-2">Perubahan Stats Pemenang</p>
+          <table class="w-full text-xs border-collapse mb-3">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Kategori</th><th class="text-left p-2 border border-slate-600 text-amber-400">Stats Winner</th></tr></thead>
+            <tbody>
+              <tr><td class="p-2 border border-slate-700 text-red-400">DOMINANT</td><td class="p-2 border border-slate-700 text-green-400">+2 ke stat terkuat</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-amber-400">COMFORTABLE</td><td class="p-2 border border-slate-700 text-green-400">+1 ke stat terkuat</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-blue-400">CLOSE</td><td class="p-2 border border-slate-700 text-green-400">+1 Mental Strength</td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-slate-300 mb-1">⭐ MVP bonus: +1 stat terkuat tambahan, +1 Mental</p>
+          <p class="text-xs text-slate-300 mb-3">⚪ CLOSE loss: Pihak kalah mendapat +0.5 Mental (berjuang keras)</p>
+          <p class="text-xs text-slate-500">Catatan: Kekalahan tidak pernah mengurangi stats. Stats hanya naik dari kemenangan atau CLOSE loss.</p>
+        `
+      },
+      {
+        id: 'chemistry_rules',
+        icon: '🧪',
+        title: '6. Aturan Chemistry Update',
+        content: `
+          <table class="w-full text-xs border-collapse mb-3">
+            <thead><tr class="bg-slate-700/80">
+              <th class="text-left p-2 border border-slate-600 text-amber-400">Jenis Match</th>
+              <th class="text-left p-2 border border-slate-600 text-amber-400">Komposisi Pair</th>
+              <th class="text-left p-2 border border-slate-600 text-amber-400">Hasil</th>
+              <th class="text-left p-2 border border-slate-600 text-amber-400">Chemistry</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td class="p-2 border border-slate-700 text-slate-300">REZIM (Internal)</td>
+                <td class="p-2 border border-slate-700 text-slate-300">Keduanya Rezim</td>
+                <td class="p-2 border border-slate-700 text-green-400">Menang</td>
+                <td class="p-2 border border-slate-700 text-green-400 font-bold">✅ +2</td>
+              </tr>
+              <tr>
+                <td class="p-2 border border-slate-700 text-slate-300">REZIM (Internal)</td>
+                <td class="p-2 border border-slate-700 text-slate-300">Keduanya Rezim</td>
+                <td class="p-2 border border-slate-700 text-red-400">Kalah</td>
+                <td class="p-2 border border-slate-700 text-green-400">✅ +2 (tetap dapat)</td>
+              </tr>
+              <tr>
+                <td class="p-2 border border-slate-700 text-slate-300">SOLO (vs External)</td>
+                <td class="p-2 border border-slate-700 text-slate-300">Keduanya Rezim</td>
+                <td class="p-2 border border-slate-700 text-green-400 font-bold">Menang</td>
+                <td class="p-2 border border-slate-700 text-green-400 font-bold">✅ +2</td>
+              </tr>
+              <tr>
+                <td class="p-2 border border-slate-700 text-slate-300">SOLO (vs External)</td>
+                <td class="p-2 border border-slate-700 text-slate-300">Keduanya Rezim</td>
+                <td class="p-2 border border-slate-700 text-red-400 font-bold">Kalah</td>
+                <td class="p-2 border border-slate-700 text-red-400">❌ 0</td>
+              </tr>
+              <tr>
+                <td class="p-2 border border-slate-700 text-slate-400">SOLO / REZIM</td>
+                <td class="p-2 border border-slate-700 text-slate-400">Ada External dalam pair</td>
+                <td class="p-2 border border-slate-700 text-slate-400">Win/Loss</td>
+                <td class="p-2 border border-slate-700 text-red-400">❌ 0</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700">
+            chemistry[PairKey] += 2 &nbsp;&nbsp;&lt;&mdash; per match yang memenuhi syarat<br>
+            chemistry max kumulatif = base + 15 poin bonus
+          </div>
+        `
+      },
+      {
+        id: 'external',
+        icon: '🌐',
+        title: '7. Match Solo vs Tim Luar Rezim (External)',
+        content: `
+          <p class="text-xs text-slate-400 mb-3">Gunakan 3 slot dummy <strong class="text-blue-400">🌐 External A / B / C</strong> sebagai placeholder lawan di luar Rezim70.</p>
+          <p class="text-xs text-amber-400 font-semibold mb-2">Aturan External Player</p>
+          <ul class="text-xs space-y-1 mb-4">
+            <li class="flex gap-2"><span class="text-red-400">❌</span><span class="text-slate-300">Tidak punya stats → tidak ada update statistik</span></li>
+            <li class="flex gap-2"><span class="text-red-400">❌</span><span class="text-slate-300">Tidak bisa dipilih sebagai MVP</span></li>
+            <li class="flex gap-2"><span class="text-red-400">❌</span><span class="text-slate-300">Tidak menghasilkan chemistry bonus</span></li>
+            <li class="flex gap-2"><span class="text-green-400">✅</span><span class="text-slate-300">Tercatat di match history sebagai lawan</span></li>
+          </ul>
+          <p class="text-xs text-amber-400 font-semibold mb-2">Skenario A &mdash; Rezim Solo (partner juga External)</p>
+          <div class="bg-slate-900/60 rounded-lg p-3 text-xs border border-slate-700 mb-3">
+            <p class="text-slate-300 font-mono mb-1">Hendra + External A  vs  External B + External C</p>
+            <p class="text-slate-400">Hendra: stats diupdate sesuai W/L &bull; Chemistry: ❌ (partner external)</p>
+          </div>
+          <p class="text-xs text-amber-400 font-semibold mb-2">Skenario B &mdash; Dua Rezim Berpasangan vs External</p>
+          <div class="bg-slate-900/60 rounded-lg p-3 text-xs border border-slate-700 mb-3">
+            <p class="text-slate-300 font-mono mb-1">Ponti + Kresna  vs  External A + External B</p>
+            <p class="text-green-400">WIN: stats diupdate + Chemistry Ponti&ndash;Kresna +2 ✅</p>
+            <p class="text-red-400 mt-0.5">LOSS: stats tidak berubah (kec. CLOSE loss +0.5 Mental), Chemistry ❌ 0</p>
+          </div>
+          <p class="text-xs text-amber-400 font-semibold mb-2">Cara Input di Super Manager</p>
+          <ol class="text-xs text-slate-300 space-y-1 list-decimal ml-4">
+            <li>Pair A → pilih pemain Rezim dari dropdown utama</li>
+            <li>Pair B → scroll ke bagian <span class="text-blue-400">&ldquo;Tim Luar Rezim&rdquo;</span>, pilih External A/B/C</li>
+            <li>Jenis Latihan → pilih <em>Solo / Di Luar Rezim</em></li>
+            <li>MVP hanya bisa dipilih dari pemain Rezim</li>
+            <li>Preview akan muncul banner biru sebagai indikator match external</li>
+          </ol>
+        `
+      },
+      {
+        id: 'example',
+        icon: '📝',
+        title: '8. Contoh Perhitungan: Enal+Ai vs Rafly+Rifky (9-12)',
+        content: `
+          <p class="text-xs text-slate-400 mb-3">Trace lengkap algoritma untuk pertandingan nyata &mdash; CLOSE WIN, Rafly+Rifky menang.</p>
+          <p class="text-xs text-amber-400 font-semibold mb-2">Chemistry Score</p>
+          <table class="w-full text-xs border-collapse mb-1">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Pair</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Type Compat</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Stats Comp</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Rating Sim</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Final</th></tr></thead>
+            <tbody>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">Enal + Ai</td><td class="p-2 border border-slate-700 text-center">95%</td><td class="p-2 border border-slate-700 text-center">73.9%</td><td class="p-2 border border-slate-700 text-center">100%</td><td class="p-2 border border-slate-700 text-center text-amber-400 font-bold">88%</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">Rafly + Rifky</td><td class="p-2 border border-slate-700 text-center">90%</td><td class="p-2 border border-slate-700 text-center">71.8%</td><td class="p-2 border border-slate-700 text-center">100%</td><td class="p-2 border border-slate-700 text-center text-amber-400 font-bold">85%</td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-slate-400 mb-3">&bull; Enal (Agg.Attacker) + Ai (Pure Def) = 95% (kombinasi ideal)</p>
+          <p class="text-xs text-amber-400 font-semibold mb-2">Pair Rating &amp; Win Probability</p>
+          <table class="w-full text-xs border-collapse mb-3">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Pair</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Base Rat.</th><th class="p-2 border border-slate-600 text-amber-400 text-center">ChemMult</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Pair Rat.</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Win Prob</th></tr></thead>
+            <tbody>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">Enal + Ai</td><td class="p-2 border border-slate-700 text-center">77.3</td><td class="p-2 border border-slate-700 text-center">1.08&times;</td><td class="p-2 border border-slate-700 text-center font-bold">83.5</td><td class="p-2 border border-slate-700 text-center text-slate-400">47.4%</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">Rafly + Rifky</td><td class="p-2 border border-slate-700 text-center">78.0</td><td class="p-2 border border-slate-700 text-center">1.08&times;</td><td class="p-2 border border-slate-700 text-center font-bold">84.2</td><td class="p-2 border border-slate-700 text-center text-green-400 font-bold">52.6%</td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-amber-400 font-semibold mb-2">Update Stats (CLOSE WIN, margin = 3)</p>
+          <table class="w-full text-xs border-collapse">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Pemain</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Status</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Mental</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Overall</th></tr></thead>
+            <tbody>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">Rafly</td><td class="p-2 border border-slate-700 text-center text-green-400">Winner</td><td class="p-2 border border-slate-700 text-center">78 &rarr; <span class="text-green-400">79</span></td><td class="p-2 border border-slate-700 text-center">78.0 &rarr; <span class="text-green-400">78.2</span></td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">Rifky</td><td class="p-2 border border-slate-700 text-center text-green-400">Winner</td><td class="p-2 border border-slate-700 text-center">78 &rarr; <span class="text-green-400">79</span></td><td class="p-2 border border-slate-700 text-center">78.0 &rarr; <span class="text-green-400">78.2</span></td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">Enal</td><td class="p-2 border border-slate-700 text-center text-blue-400">CLOSE loss</td><td class="p-2 border border-slate-700 text-center">77 &rarr; <span class="text-blue-400">77.5</span></td><td class="p-2 border border-slate-700 text-center">77.6 &rarr; <span class="text-blue-400">77.7</span></td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-300">Ai</td><td class="p-2 border border-slate-700 text-center text-blue-400">CLOSE loss</td><td class="p-2 border border-slate-700 text-center">77 &rarr; <span class="text-blue-400">77.5</span></td><td class="p-2 border border-slate-700 text-center">77.0 &rarr; <span class="text-blue-400">77.1</span></td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-blue-400 mt-2">⚗️ Chemistry update: Kedua pair REZIM match &rarr; masing-masing +2</p>
+        `
+      }
+    ];
+
+    let guideRendered = false;
+    function renderGuidePage() {
+      if (guideRendered) return;
+      guideRendered = true;
+      const el = document.getElementById('guide-rendered-content');
+      let html = '';
+      GUIDE_DATA.forEach((section, i) => {
+        html += `
+          <div class="border border-slate-700/50 rounded-xl overflow-hidden">
+            <button onclick="toggleGuideSection(${i})" id="guide-btn-${i}"
+              class="w-full text-left bg-slate-800/80 hover:bg-slate-700/80 px-4 py-3 flex items-center justify-between transition-colors">
+              <span class="flex items-center gap-2">
+                <span class="text-lg">${section.icon}</span>
+                <span class="font-semibold text-sm text-white">${section.title}</span>
+              </span>
+              <span id="guide-arrow-${i}" class="text-slate-400 text-xs transition-all">▼</span>
+            </button>
+            <div id="guide-section-${i}" class="hidden bg-slate-900/30 border-t border-slate-700/50 px-4 py-4">
+              ${section.content}
+            </div>
+          </div>`;
+      });
+      el.innerHTML = html;
+    }
+
+    function toggleGuideSection(i) {
+      const el = document.getElementById(`guide-section-${i}`);
+      const arrow = document.getElementById(`guide-arrow-${i}`);
+      const isHidden = el.classList.toggle('hidden');
+      arrow.textContent = isHidden ? '▼' : '▲';
+    }
+
+    function populateMatchDropdowns() {
+      const names = gameData.players.map(p => p.name).sort();
+      const rezimOpts = names.map(n => `<option value="${n}">${n}</option>`).join('');
+      // External dummy players shown with globe emoji indicator
+      const extOpts = EXTERNAL_PLAYERS.map(n => `<option value="${n}">🌐 ${n}</option>`).join('');
+      const extGroup = `<optgroup label="──── Tim Luar Rezim ────">${extOpts}</optgroup>`;
+      ['match-a1', 'match-a2', 'match-b1', 'match-b2'].forEach(id => {
+        const sel = document.getElementById(id);
+        sel.innerHTML = `<option value="">Pilih...</option>${rezimOpts}${extGroup}`;
+      });
+      // MVP: only Rezim players (external players have no stats to award)
+      const mvpSel = document.getElementById('match-mvp');
+      mvpSel.innerHTML = '<option value="">-- Tidak ada --</option>' + rezimOpts;
+    }
+
+    function autoCalcScore(side) {
+      const a = parseInt(document.getElementById('match-score-a').value) || 0;
+      const b = parseInt(document.getElementById('match-score-b').value) || 0;
+      const other = side === 'a' ? 'b' : 'a';
+      const val = side === 'a' ? a : b;
+      if (val > 21) {
+        document.getElementById(`match-score-${side}`).value = 21;
+        document.getElementById(`match-score-${other}`).value = 0;
+      } else {
+        document.getElementById(`match-score-${other}`).value = 21 - val;
+      }
+      validateScore();
+      updateMatchPreview();
+    }
+
+    function setScore(a, b) {
+      document.getElementById('match-score-a').value = a;
+      document.getElementById('match-score-b').value = b;
+      validateScore();
+      updateMatchPreview();
+    }
+
+    function validateScore() {
+      const a = parseInt(document.getElementById('match-score-a').value) || 0;
+      const b = parseInt(document.getElementById('match-score-b').value) || 0;
+      const el = document.getElementById('score-validation');
+      if (a + b === 21 && a !== b) {
+        el.textContent = '✅ Score valid (Total = 21)';
+        el.className = 'text-xs mt-1 text-center text-green-400';
+      } else if (a + b !== 21) {
+        el.textContent = `⚠️ Total = ${a + b}, harus 21`;
+        el.className = 'text-xs mt-1 text-center text-red-400';
+      } else {
+        el.textContent = '⚠️ Tidak boleh imbang';
+        el.className = 'text-xs mt-1 text-center text-red-400';
+      }
+    }
+
+    function updateMatchPreview() { /* live preview updated via previewMatchChanges */ }
+
+    function previewMatchChanges() {
+      const a1 = document.getElementById('match-a1').value;
+      const a2 = document.getElementById('match-a2').value;
+      const b1 = document.getElementById('match-b1').value;
+      const b2 = document.getElementById('match-b2').value;
+      const sA = parseInt(document.getElementById('match-score-a').value) || 0;
+      const sB = parseInt(document.getElementById('match-score-b').value) || 0;
+      const matchType = document.getElementById('match-type').value;
+      const mvp = document.getElementById('match-mvp').value;
+
+      if (!a1 || !a2 || !b1 || !b2) { toast('Lengkapi semua pemain!', 'amber'); return; }
+      if (a1 === a2 || b1 === b2) { toast('Pemain dalam 1 pair tidak boleh sama!', 'amber'); return; }
+      // Rezim players cannot appear in both pairs
+      const rezimInMatch = [a1, a2, b1, b2].filter(n => !isExternal(n));
+      if (new Set(rezimInMatch).size < rezimInMatch.length) { toast('Pemain Rezim tidak boleh duplikat antar pair!', 'amber'); return; }
+      if (sA + sB !== 21 || sA === sB) { toast('Score tidak valid! Total harus 21.', 'amber'); return; }
+
+      const winner = sA > sB ? 'A' : 'B';
+      const margin = Math.abs(sA - sB);
+      const cat = categorizeWin(margin);
+      const winPairs = winner === 'A' ? [a1, a2] : [b1, b2];
+      const losePairs = winner === 'A' ? [b1, b2] : [a1, a2];
+
+      const changes = calcStatChanges(winPairs, losePairs, cat, matchType, mvp);
+      renderPreviewPanel(changes, cat, winner, sA, sB, a1, a2, b1, b2, matchType);
+    }
+
+    function calcStatChanges(winners, losers, category, matchType, mvp) {
+      const changes = {};
+
+      // Helper: get the best stat dimension of a player
+      const bestStat = (name) => {
+        const p = getPlayer(name);
+        if (!p) return { k: 'men', l: 'Mental' };
+        const stats = [{ k: 'atk', l: 'Attacking' }, { k: 'def', l: 'Defense' }, { k: 'phy', l: 'Physical' }, { k: 'tac', l: 'Tactical' }, { k: 'men', l: 'Mental' }];
+        return stats.sort((a, b) => p[b.k] - p[a.k])[0];
+      };
+
+      // Only Rezim members get stat updates — external players are skipped
+      const rezimWinners = winners.filter(name => !isExternal(name));
+      const rezimLosers = losers.filter(name => !isExternal(name));
+
+      rezimWinners.forEach(name => {
+        const bs = bestStat(name);
+        changes[name] = { stats: {}, formChange: +1, isMVP: name === mvp };
+        if (category === 'DOMINANT') changes[name].stats[bs.k] = 2;
+        else if (category === 'COMFORTABLE') changes[name].stats[bs.k] = 1;
+        else if (category === 'CLOSE') changes[name].stats.men = 1;
+        if (name === mvp) {
+          changes[name].stats[bs.k] = (changes[name].stats[bs.k] || 0) + 1;
+          changes[name].stats.men = (changes[name].stats.men || 0) + 1;
+        }
+      });
+
+      rezimLosers.forEach(name => {
+        changes[name] = { stats: {}, formChange: -1, isLoser: true };
+        if (category === 'CLOSE') changes[name].stats.men = 0.5;
+      });
+
+      return changes;
+    }
+
+    function renderPreviewPanel(changes, cat, winner, sA, sB, a1, a2, b1, b2, matchType) {
+      const catColors = { DOMINANT: 'text-red-400', COMFORTABLE: 'text-amber-400', CLOSE: 'text-blue-400' };
+
+      // Detect if any external player is involved
+      const hasExternal = [a1, a2, b1, b2].some(n => isExternal(n));
+
+      // Determine chemistry bonuses for display
+      // Winners pair: both Rezim → always +2
+      // Losers pair: both Rezim AND match is REZIM type → +2
+      const winPairArr = winner === 'A' ? [a1, a2] : [b1, b2];
+      const losePairArr = winner === 'A' ? [b1, b2] : [a1, a2];
+      const winPairBothRezim = winPairArr.every(n => !isExternal(n));
+      const losePairBothRezim = losePairArr.every(n => !isExternal(n));
+      const winChemNote = winPairBothRezim ? '⚗️ Chemistry +2 (pair menang, keduanya Rezim)' : '';
+      const loseChemNote = (losePairBothRezim && matchType === 'REZIM') ? '⚗️ Chemistry +2 (latihan internal Rezim)' : '';
+
+      let html = `<div class="space-y-3">`;
+
+      // External notice banner
+      if (hasExternal) {
+        html += `<div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-2.5 text-xs text-blue-400">
+      🌐 <strong>Match vs Tim Luar Rezim</strong> — Stats pemain external tidak diupdate. Hanya pemain Rezim yang tercatat.
+    </div>`;
+      }
+
+      html += `<div class="bg-slate-700/50 rounded-xl p-3 text-center">
+    <div class="text-xs text-slate-400 mb-1">Pair A: ${a1}${isExternal(a1) ? '🌐' : ''} + ${a2}${isExternal(a2) ? '🌐' : ''}</div>
+    <div class="text-2xl font-black">
+      <span class="${winner === 'A' ? 'text-amber-400' : 'text-slate-400'}">${sA}</span>
+      <span class="text-slate-500 mx-2">-</span>
+      <span class="${winner === 'B' ? 'text-amber-400' : 'text-slate-400'}">${sB}</span>
+    </div>
+    <div class="text-xs text-slate-400 mt-1">Pair B: ${b1}${isExternal(b1) ? '🌐' : ''} + ${b2}${isExternal(b2) ? '🌐' : ''}</div>
+    <div class="text-xs ${catColors[cat] || ''} mt-1">${cat} WIN · ${matchType === 'REZIM' ? 'Sesama Rezim' : 'Solo / Luar Rezim'}</div>
+  </div>`;
+
+      const statLabels = { atk: 'Attacking', def: 'Defense', phy: 'Physical', tac: 'Tactical', men: 'Mental' };
+
+      Object.entries(changes).forEach(([name, delta]) => {
+        const p = getPlayer(name);
+        if (!p) return; // skip external (should not be in changes, but guard anyway)
+        const isWinner = !delta.isLoser;
+        const chemNote = isWinner ? winChemNote : loseChemNote;
+        html += `<div class="bg-slate-700/30 rounded-xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <div>
+          <span class="font-semibold text-white text-sm">${name}</span>
+          ${delta.isMVP ? '<span class="ml-2 text-xs bg-yellow-500/20 text-yellow-400 px-1.5 rounded">⭐ MVP</span>' : ''}
+          ${isWinner ? '<span class="ml-1 text-xs text-green-400">Win</span>' : '<span class="ml-1 text-xs text-red-400">Loss</span>'}
+        </div>
+        <span class="text-xs text-slate-400">Overall ${p.overall}</span>
+      </div>`;
+
+        const hasStatChange = Object.keys(delta.stats).length > 0;
+        if (hasStatChange) {
+          html += `<div class="space-y-1">`;
+          Object.entries(delta.stats).forEach(([k, v]) => {
+            if (v > 0) html += `<div class="flex justify-between text-xs"><span class="text-slate-400">${statLabels[k]}</span><span class="text-green-400">${p[k]} → ${Math.min(95, p[k] + v)} (+${v})</span></div>`;
+          });
+          html += `</div>`;
+        } else {
+          html += `<div class="text-xs text-slate-500">Stats tidak berubah</div>`;
+        }
+        if (chemNote) html += `<div class="text-xs text-blue-400 mt-1">${chemNote}</div>`;
+        html += `<div class="text-xs ${delta.formChange > 0 ? 'text-green-400' : 'text-red-400'} mt-1">Form: ${delta.formChange > 0 ? '+1' : '-1'}</div>`;
+        html += `</div>`;
+      });
+
+      html += `</div>`;
+      document.getElementById('match-preview-panel').innerHTML = html;
+    }
+
+    function submitMatch() {
+      const a1 = document.getElementById('match-a1').value;
+      const a2 = document.getElementById('match-a2').value;
+      const b1 = document.getElementById('match-b1').value;
+      const b2 = document.getElementById('match-b2').value;
+      const sA = parseInt(document.getElementById('match-score-a').value) || 0;
+      const sB = parseInt(document.getElementById('match-score-b').value) || 0;
+      const matchType = document.getElementById('match-type').value;
+      const mvp = document.getElementById('match-mvp').value;
+      const date = document.getElementById('match-date').value;
+
+      if (!a1 || !a2 || !b1 || !b2) { toast('Lengkapi semua pemain!', 'amber'); return; }
+      if (a1 === a2 || b1 === b2) { toast('Pemain dalam 1 pair tidak boleh sama!', 'amber'); return; }
+      // Rezim players cannot appear in both pairs simultaneously
+      const rezimInMatch = [a1, a2, b1, b2].filter(n => !isExternal(n));
+      if (new Set(rezimInMatch).size < rezimInMatch.length) { toast('Pemain Rezim tidak boleh duplikat antar pair!', 'amber'); return; }
+      if (sA + sB !== 21 || sA === sB) { toast('Score tidak valid!', 'amber'); return; }
+
+      const winner = sA > sB ? 'A' : 'B';
+      const margin = Math.abs(sA - sB);
+      const cat = categorizeWin(margin);
+      const winPairs = winner === 'A' ? [a1, a2] : [b1, b2];
+      const losePairs = winner === 'A' ? [b1, b2] : [a1, a2];
+
+      const changes = calcStatChanges(winPairs, losePairs, cat, matchType, mvp);
+
+      // Apply stat changes
+      Object.entries(changes).forEach(([name, delta]) => {
+        const p = getPlayer(name);
+        if (!p) return;
+        Object.entries(delta.stats).forEach(([k, v]) => {
+          p[k] = Math.min(95, Math.max(65, Math.round((p[k] + v) * 10) / 10));
+        });
+        p.overall = calcOverall(p);
+        if (!p.performance) p.performance = { wins: 0, losses: 0, currentStreak: 0, mvpCount: 0, status: 'Fit', lastUpdated: null };
+        if (!delta.isLoser) { p.performance.wins++; p.performance.currentStreak = Math.max(0, p.performance.currentStreak) + 1; }
+        else { p.performance.losses++; p.performance.currentStreak = Math.min(0, p.performance.currentStreak) - 1; }
+        if (delta.isMVP) p.performance.mvpCount++;
+        p.performance.lastUpdated = date;
+      });
+
+      // ── CHEMISTRY RULES ──────────────────────────────────────────
+      // Rule 1 – Winning pair: ALWAYS gets +2 chemistry if BOTH players are Rezim members
+      //           (applies for both REZIM and SOLO match types)
+      // Rule 2 – Losing pair: only gets +2 if match type is REZIM AND both players are Rezim members
+      //           (SOLO/External match → losing pair gets NO chemistry bonus)
+      //
+      // Examples:
+      //   Hendra+ExtA vs ExtB+ExtC   → Hendra wins SOLO → no chemistry (partner is External)
+      //   Ponti+Kresna vs ExtA+ExtB  → Ponti+Kresna win SOLO → chemistry +2 for Ponti-Kresna ✓
+      //   Ponti+Kresna vs ExtA+ExtB  → Ponti+Kresna lose SOLO → NO chemistry for Ponti-Kresna ✗
+      //   Heru+Andi vs Kresna+Kukuh  → Both pairs Rezim, REZIM match → both pairs get +2
+      const winPairNames = winner === 'A' ? [a1, a2] : [b1, b2];
+      const losePairNames = winner === 'A' ? [b1, b2] : [a1, a2];
+
+      if (!isExternal(winPairNames[0]) && !isExternal(winPairNames[1])) {
+        const winKey = [...winPairNames].sort().join('-');
+        gameData.chemistry[winKey] = Math.min(15, (gameData.chemistry[winKey] || 0) + 2);
+      }
+
+      if (matchType === 'REZIM' && !isExternal(losePairNames[0]) && !isExternal(losePairNames[1])) {
+        const loseKey = [...losePairNames].sort().join('-');
+        gameData.chemistry[loseKey] = Math.min(15, (gameData.chemistry[loseKey] || 0) + 2);
+      }
+
+      // Save match record
+      gameData.matches.unshift({ id: Date.now(), date, pairA: { p1: a1, p2: a2, score: sA }, pairB: { p1: b1, p2: b2, score: sB }, winner, margin, category: cat, type: matchType, mvp, changes });
+      saveData();
+      toast('✅ Match disimpan & stats diupdate!', 'green');
+      previewMatchChanges();
+      renderMatchHistory();
+      document.getElementById('stat-total-matches').textContent = gameData.matches.length;
+    }
+
+    function renderSMPlayerStatus() {
+      const sorted = [...gameData.players].sort((a, b) => b.overall - a.overall);
+      document.getElementById('sm-player-status-list').innerHTML = sorted.map(p => {
+        const status = p.performance?.status || 'Fit';
+        return `<div class="flex items-center gap-3 bg-slate-700/30 rounded-xl p-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-white text-sm">${p.name}</span>
+          ${statusBadge(status)}
+          ${formBadge(p)}
+        </div>
+        <div class="text-xs text-slate-400 mt-0.5">Overall: ${p.overall} · W${p.performance?.wins || 0}/L${p.performance?.losses || 0}</div>
+      </div>
+      <select class="text-xs" onchange="updatePlayerStatus('${p.name}', this.value)">
+        <option ${status === 'Fit' ? 'selected' : ''}>Fit</option>
+        <option ${status === 'Minor Injury' ? 'selected' : ''}>Minor Injury</option>
+        <option ${status === 'Injured' ? 'selected' : ''}>Injured</option>
+        <option ${status === 'On Break' ? 'selected' : ''}>On Break</option>
+      </select>
+    </div>`;
+      }).join('');
+    }
+
+    function updatePlayerStatus(name, status) {
+      const p = getPlayer(name);
+      if (!p) return;
+      if (!p.performance) p.performance = { wins: 0, losses: 0, currentStreak: 0, mvpCount: 0, status: 'Fit', lastUpdated: null };
+      p.performance.status = status;
+      saveData();
+      toast(`${name} → ${status}`, 'blue');
+    }
+
+    function renderMatchHistory() {
+      const list = document.getElementById('sm-history-list');
+      const empty = document.getElementById('sm-history-empty');
+      document.getElementById('history-count').textContent = gameData.matches.length;
+      if (!gameData.matches.length) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden');
+      const catColors = { DOMINANT: 'text-red-400', COMFORTABLE: 'text-amber-400', CLOSE: 'text-blue-400' };
+      list.innerHTML = gameData.matches.map((m, idx) => `<div class="bg-slate-700/30 rounded-xl p-3">
+    <div class="flex justify-between items-center mb-1">
+      <span class="text-xs text-slate-400">${m.date} · ${m.type === 'REZIM' ? 'Sesama Rezim' : 'Solo'}</span>
+      <span class="text-xs ${catColors[m.category] || ''}">${m.category}</span>
+    </div>
+    <div class="flex items-center gap-2 text-sm">
+      <span class="${m.winner === 'A' ? 'text-amber-400 font-bold' : 'text-slate-400'}">${m.pairA.p1}+${m.pairA.p2}</span>
+      <span class="font-black text-lg ${m.winner === 'A' ? 'text-amber-400' : 'text-slate-500'}">${m.pairA.score}</span>
+      <span class="text-slate-500">-</span>
+      <span class="font-black text-lg ${m.winner === 'B' ? 'text-amber-400' : 'text-slate-500'}">${m.pairB.score}</span>
+      <span class="${m.winner === 'B' ? 'text-amber-400 font-bold' : 'text-slate-400'}">${m.pairB.p1}+${m.pairB.p2}</span>
+    </div>
+    ${m.mvp ? `<div class="text-xs text-yellow-400 mt-1">⭐ MVP: ${m.mvp}</div>` : ''}
+  </div>`).join('');
+    }
+
+    function exportData() {
+      const json = JSON.stringify(gameData, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rezim-padel-data-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      toast('✅ Data diekspor!', 'green');
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!imported.players) throw new Error('Format invalid');
+          if (!confirm('Import data ini? Data saat ini akan diganti.')) return;
+          gameData = { ...gameData, ...imported };
+          saveData();
+          toast('✅ Data diimport!', 'green');
+          renderSMPlayerStatus();
+          renderMatchHistory();
+        } catch (err) { toast('❌ File tidak valid!', 'red'); }
+      };
+      reader.readAsText(file);
+    }
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    loadData();
+    // Update pairs from loaded players (re-resolve player references)
+    gameData.pairs = gameData.pairs.map(pair => [
+      getPlayer(pair[0].name) || pair[0],
+      getPlayer(pair[1].name) || pair[1]
+    ]);
+    showPage('home');
+
+    document.getElementById('sim-bracket-size')?.addEventListener('change', () => {
+      simSelectedPairsForTournament = [];
+      document.getElementById('sim-selected-count').textContent = 0;
+      renderSimPairSelector();
+      updateSimStartBtn();
+    });
+
+    // Close modal on overlay click
+    document.getElementById('player-modal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('player-modal')) closeModal();
+    });
+  </script>
+</body>
+
+</html>
