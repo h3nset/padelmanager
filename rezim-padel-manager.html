@@ -214,6 +214,7 @@
       font-size: 16px !important;
       /* prevent iOS zoom on focus */
       width: 100%;
+      padding: 5pt;
     }
 
     @media (max-width: 640px) {
@@ -555,11 +556,11 @@
             <div class="space-y-3">
               <div>
                 <label class="text-xs text-slate-400 mb-1 block">Nama Tournament</label>
-                <input type="text" id="sim-tournament-name" value="Rezim Cup" class="w-full text-sm">
+                <input type="text" id="sim-tournament-name" value="Rezim Cup" class="w-full text-sm p-2">
               </div>
               <div>
                 <label class="text-xs text-slate-400 mb-1 block">Format Bracket</label>
-                <select id="sim-bracket-size" class="w-full text-sm">
+                <select id="sim-bracket-size" class="w-full text-sm p-2">
                   <option value="4">4 Pair (2 ronde)</option>
                   <option value="8" selected>8 Pair (3 ronde)</option>
                   <option value="12">12 Pair (Round Robin + Final)</option>
@@ -692,18 +693,18 @@
               <div id="form-single-input" class="space-y-4">
                 <div>
                   <label class="text-xs text-slate-400 mb-1 block">Tanggal</label>
-                  <input type="date" id="match-date" class="w-full text-sm">
+                  <input type="date" id="match-date" class="w-full text-sm p-2">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                   <div>
                     <label class="text-xs text-slate-400 mb-1 block">Pair A — Pemain 1</label>
-                    <select id="match-a1" class="w-full text-sm" onchange="updateMatchPreview()">
+                    <select id="match-a1" class="w-full text-sm p-2" onchange="updateMatchPreview()">
                       <option value="">Pilih...</option>
                     </select>
                   </div>
                   <div>
                     <label class="text-xs text-slate-400 mb-1 block">Pair A — Pemain 2</label>
-                    <select id="match-a2" class="w-full text-sm" onchange="updateMatchPreview()">
+                    <select id="match-a2" class="w-full text-sm p-2" onchange="updateMatchPreview()">
                       <option value="">Pilih...</option>
                     </select>
                   </div>
@@ -712,13 +713,13 @@
                 <div class="grid grid-cols-2 gap-3">
                   <div>
                     <label class="text-xs text-slate-400 mb-1 block">Pair B — Pemain 1</label>
-                    <select id="match-b1" class="w-full text-sm" onchange="updateMatchPreview()">
+                    <select id="match-b1" class="w-full text-sm p-2" onchange="updateMatchPreview()">
                       <option value="">Pilih...</option>
                     </select>
                   </div>
                   <div>
                     <label class="text-xs text-slate-400 mb-1 block">Pair B — Pemain 2</label>
-                    <select id="match-b2" class="w-full text-sm" onchange="updateMatchPreview()">
+                    <select id="match-b2" class="w-full text-sm p-2" onchange="updateMatchPreview()">
                       <option value="">Pilih...</option>
                     </select>
                   </div>
@@ -731,14 +732,14 @@
                     <div class="flex-1">
                       <div class="text-xs text-slate-400 mb-1 text-center">Pair A</div>
                       <input type="number" id="match-score-a" min="0" max="21" placeholder="0"
-                        class="w-full text-center text-lg font-bold" oninput="autoCalcScore('a')"
+                        class="w-full text-center text-lg font-bold p-2" oninput="autoCalcScore('a')"
                         onchange="updateMatchPreview()">
                     </div>
                     <div class="text-slate-400 font-bold">-</div>
                     <div class="flex-1">
                       <div class="text-xs text-slate-400 mb-1 text-center">Pair B</div>
                       <input type="number" id="match-score-b" min="0" max="21" placeholder="0"
-                        class="w-full text-center text-lg font-bold" oninput="autoCalcScore('b')"
+                        class="w-full text-center text-lg font-bold p-2" oninput="autoCalcScore('b')"
                         onchange="updateMatchPreview()">
                     </div>
                   </div>
@@ -767,14 +768,14 @@
                 <div class="grid grid-cols-2 gap-3">
                   <div>
                     <label class="text-xs text-slate-400 mb-1 block">Jenis Latihan</label>
-                    <select id="match-type" class="w-full text-sm" onchange="updateMatchPreview()">
+                    <select id="match-type" class="w-full text-sm p-2" onchange="updateMatchPreview()">
                       <option value="REZIM">Sesama Rezim70 (+chemistry)</option>
                       <option value="SOLO">Solo / Di Luar Rezim</option>
                     </select>
                   </div>
                   <div>
                     <label class="text-xs text-slate-400 mb-1 block">MVP (Opsional)</label>
-                    <select id="match-mvp" class="w-full text-sm" onchange="updateMatchPreview()">
+                    <select id="match-mvp" class="w-full text-sm p-2" onchange="updateMatchPreview()">
                       <option value="">-- Tidak ada --</option>
                     </select>
                   </div>
@@ -922,7 +923,7 @@
 
   <!-- ==================== TOAST ==================== -->
   <div id="toast" class="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 hidden">
-    <div id="toast-inner" class="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-xl"></div>
+    <div id="toast-inner" class="flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium shadow-xl"></div>
   </div>
 
   <script>
@@ -1045,17 +1046,17 @@
     }
     function formBadge(p) {
       const streak = p.performance?.currentStreak || 0;
-      if (streak >= 5) return '<span class="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">🔥 Hot</span>';
-      if (streak >= 3) return '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">✅ Good</span>';
-      if (streak <= -3) return '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">❄️ Cold</span>';
-      return '<span class="text-xs bg-slate-600/50 text-slate-400 px-2 py-0.5 rounded-full">➡️ Normal</span>';
+      if (streak >= 5) return '<span class="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">🔥 Hot</span>';
+      if (streak >= 3) return '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-md">✅ Good</span>';
+      if (streak <= -3) return '<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-md">❄️ Cold</span>';
+      return '<span class="text-xs bg-slate-600/50 text-slate-400 px-2 py-0.5 rounded-md">➡️ Normal</span>';
     }
     function statusBadge(status) {
       const map = {
-        'Fit': '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">✅ Fit</span>',
-        'Minor Injury': '<span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">⚠️ Minor</span>',
-        'Injured': '<span class="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">❌ Injured</span>',
-        'On Break': '<span class="text-xs bg-slate-500/30 text-slate-400 px-2 py-0.5 rounded-full">🔒 Break</span>',
+        'Fit': '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-md">✅ Fit</span>',
+        'Minor Injury': '<span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-md">⚠️ Minor</span>',
+        'Injured': '<span class="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">❌ Injured</span>',
+        'On Break': '<span class="text-xs bg-slate-500/30 text-slate-400 px-2 py-0.5 rounded-md">🔒 Break</span>',
       };
       return map[status] || map['Fit'];
     }
@@ -1261,7 +1262,7 @@
       <div class="flex-1">
         <div class="flex items-center gap-2">
           <span class="font-semibold text-white text-sm">${p.name}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded-full ${typeColor(p.type)}">${typeShort(p.type)}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-md ${typeColor(p.type)}">${typeShort(p.type)}</span>
         </div>
         <div class="flex gap-3 mt-1">
           ${ratingBar(p.atk, 'amber')}
@@ -1302,7 +1303,7 @@
     <div class="flex items-start justify-between mb-3">
       <div>
         <h3 class="font-bold text-white">${p.name}</h3>
-        <span class="text-xs px-2 py-0.5 rounded-full ${typeColor(p.type)}">${typeShort(p.type)}</span>
+        <span class="text-xs px-2 py-0.5 rounded-md ${typeColor(p.type)}">${typeShort(p.type)}</span>
       </div>
       <div class="text-right">
         <div class="text-2xl font-black text-amber-400">${p.overall}</div>
@@ -1336,7 +1337,7 @@
       <div class="flex justify-between items-start mb-4">
         <div>
           <h2 class="text-xl font-black text-white">${p.name}</h2>
-          <span class="text-sm px-2 py-1 rounded-full ${typeColor(p.type)}">${p.type}</span>
+          <span class="text-sm px-2 py-1 rounded-md ${typeColor(p.type)}">${p.type}</span>
         </div>
         <button onclick="closeModal()" class="text-slate-400 hover:text-white text-2xl leading-none">×</button>
       </div>
@@ -2572,7 +2573,7 @@
         </div>
         <div class="text-xs text-slate-400 mt-0.5">Overall: ${p.overall} · W${p.performance?.wins || 0}/L${p.performance?.losses || 0}</div>
       </div>
-      <select class="text-xs" onchange="updatePlayerStatus('${p.name}', this.value)">
+      <select class="text-xs px-2" onchange="updatePlayerStatus('${p.name}', this.value)">
         <option ${status === 'Fit' ? 'selected' : ''}>Fit</option>
         <option ${status === 'Minor Injury' ? 'selected' : ''}>Minor Injury</option>
         <option ${status === 'Injured' ? 'selected' : ''}>Injured</option>
