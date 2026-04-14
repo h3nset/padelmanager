@@ -10,6 +10,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
     rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * {
       font-family: 'Inter', sans-serif;
@@ -201,20 +202,83 @@
       animation: spin 0.8s linear infinite;
     }
 
-    /* Mobile nav */
-    @media (max-width: 640px) {
-      .desktop-nav {
-        display: none;
-      }
+    /* Mobile nav is handled by Tailwind classes (hidden md:flex, md:hidden) */
 
-      .mobile-nav {
-        display: flex;
+    /* ── Mobile-first improvements ────────────────────────────── */
+
+    /* Touch targets & inputs */
+    input,
+    select,
+    textarea {
+      min-height: 44px;
+      font-size: 16px !important;
+      /* prevent iOS zoom on focus */
+      width: 100%;
+    }
+
+    @media (max-width: 640px) {
+      input[type="number"] {
+        font-size: 20px !important;
       }
     }
 
-    @media (min-width: 641px) {
-      .mobile-nav {
-        display: none;
+    /* SM tabs: horizontal scroll, no wrap on mobile */
+    .sm-tabs-bar {
+      display: flex;
+      gap: 8px;
+      padding-bottom: 4px;
+      flex-wrap: wrap;
+      /* Wrap on desktop */
+    }
+
+    @media (max-width: 640px) {
+      .sm-tabs-bar {
+        flex-wrap: nowrap;
+        /* No wrap on mobile, use horizontal scroll */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+    }
+
+    .sm-tabs-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .sm-tabs-bar button {
+      flex-shrink: 0;
+    }
+
+    /* Table overflow on mobile */
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 8px;
+    }
+
+    /* Prevent overflow: keep content inside screen */
+    .page {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    main {
+      overflow-x: hidden;
+    }
+
+    /* Guide accordion content */
+    #guide-rendered-content {
+      overflow-x: hidden;
+    }
+
+    #guide-rendered-content .table-wrap {
+      margin-bottom: 12px;
+    }
+
+    /* Main content bottom padding (above mobile nav bar) */
+    @media (max-width: 640px) {
+      main {
+        padding-bottom: 80px !important;
       }
     }
   </style>
@@ -225,17 +289,17 @@
   <!-- ==================== NAVBAR ==================== -->
   <nav class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="showPage('home')">
         <div
           class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 font-black text-sm">
           R</div>
         <div>
-          <div class="font-bold text-sm leading-tight gradient-text">REZIMMAINPADEL</div>
-          <div class="text-xs text-slate-500 leading-tight">Padel PairManager</div>
+          <div class="font-bold text-sm leading-tight gradient-text">REZIMAINPADEL</div>
+          <div class="text-xs text-slate-500 leading-tight">Padel Pair Manager</div>
         </div>
       </div>
       <!-- Desktop Nav -->
-      <div class="desktop-nav flex items-center gap-1">
+      <div class="hidden md:flex items-center gap-1">
         <button onclick="showPage('home')"
           class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all"
           data-page="home">🏠 Home</button>
@@ -254,36 +318,45 @@
       </div>
       <div class="flex items-center gap-2">
         <div class="text-xs text-slate-500 hidden sm:block">v1.0</div>
+        <!-- Hamburger Button for Mobile -->
+        <button onclick="toggleMobileMenu()"
+          class="md:hidden text-slate-300 hover:text-amber-400 p-1 text-2xl transition-colors">
+          ☰
+        </button>
+      </div>
+    </div>
+    <!-- Mobile Slide-down Menu -->
+    <div id="mobile-menu"
+      class="hidden md:hidden border-t border-slate-800 bg-slate-900/95 backdrop-blur px-4 py-4 pb-6 absolute w-full shadow-xl">
+      <div class="flex flex-col gap-2">
+        <button onclick="showPage('home')"
+          class="mob-nav flex items-center gap-3 text-left w-full px-4 py-3 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors"
+          data-page="home">
+          <span class="text-xl">🏠</span><span class="font-medium text-slate-300">Home</span>
+        </button>
+        <button onclick="showPage('players')"
+          class="mob-nav flex items-center gap-3 text-left w-full px-4 py-3 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors"
+          data-page="players">
+          <span class="text-xl">👥</span><span class="font-medium text-slate-300">Pemain Status</span>
+        </button>
+        <button onclick="showPage('builder')"
+          class="mob-nav flex items-center gap-3 text-left w-full px-4 py-3 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors"
+          data-page="builder">
+          <span class="text-xl">⚡</span><span class="font-medium text-slate-300">Pair Builder</span>
+        </button>
+        <button onclick="showPage('simulator')"
+          class="mob-nav flex items-center gap-3 text-left w-full px-4 py-3 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors"
+          data-page="simulator">
+          <span class="text-xl">🏆</span><span class="font-medium text-slate-300">Simulator</span>
+        </button>
+        <button onclick="showPage('supermanager')"
+          class="mob-nav flex items-center gap-3 text-left w-full px-4 py-3 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors"
+          data-page="supermanager">
+          <span class="text-xl">🔐</span><span class="font-medium text-slate-300">Super Manager</span>
+        </button>
       </div>
     </div>
   </nav>
-
-  <!-- Mobile Bottom Nav -->
-  <div
-    class="mobile-nav fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur border-t border-slate-800 py-2 px-2">
-    <div class="flex justify-around">
-      <button onclick="showPage('home')" class="mob-nav flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg"
-        data-page="home">
-        <span class="text-lg">🏠</span><span class="text-[10px] text-slate-400">Home</span>
-      </button>
-      <button onclick="showPage('players')" class="mob-nav flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg"
-        data-page="players">
-        <span class="text-lg">👥</span><span class="text-[10px] text-slate-400">Pemain</span>
-      </button>
-      <button onclick="showPage('builder')" class="mob-nav flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg"
-        data-page="builder">
-        <span class="text-lg">⚡</span><span class="text-[10px] text-slate-400">Builder</span>
-      </button>
-      <button onclick="showPage('simulator')" class="mob-nav flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg"
-        data-page="simulator">
-        <span class="text-lg">🏆</span><span class="text-[10px] text-slate-400">Sim</span>
-      </button>
-      <button onclick="showPage('supermanager')" class="mob-nav flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg"
-        data-page="supermanager">
-        <span class="text-lg">🔐</span><span class="text-[10px] text-slate-400">Admin</span>
-      </button>
-    </div>
-  </div>
 
   <!-- ==================== MAIN CONTENT ==================== -->
   <main class="max-w-7xl mx-auto px-4 pb-24 pt-6">
@@ -580,22 +653,22 @@
             class="text-xs text-red-400 border border-red-400/30 px-3 py-1.5 rounded-lg hover:bg-red-400/10 transition-colors">Logout</button>
         </div>
 
-        <!-- Tabs -->
-        <div class="flex gap-2 mb-6 flex-wrap">
+        <!-- Tabs — horizontal scroll on mobile -->
+        <div class="sm-tabs-bar mb-6 overflow-x-auto">
           <button onclick="smShowTab('input')"
-            class="sm-tab active-tab bg-amber-500 text-slate-900 font-bold text-sm px-4 py-2 rounded-lg"
+            class="sm-tab active-tab bg-amber-500 text-slate-900 font-bold text-sm px-4 py-2 rounded-lg whitespace-nowrap"
             data-tab="input">📝 Input Match</button>
           <button onclick="smShowTab('players')"
-            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg"
+            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg whitespace-nowrap"
             data-tab="players">👥 Status Pemain</button>
           <button onclick="smShowTab('history')"
-            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg"
+            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg whitespace-nowrap"
             data-tab="history">📜 Match History</button>
           <button onclick="smShowTab('data')"
-            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg"
+            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg whitespace-nowrap"
             data-tab="data">💾 Data</button>
           <button onclick="smShowTab('guide')"
-            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg"
+            class="sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg whitespace-nowrap"
             data-tab="guide">📖 Panduan</button>
         </div>
 
@@ -603,8 +676,20 @@
         <div id="sm-tab-input" class="sm-tab-content">
           <div class="grid lg:grid-cols-2 gap-4">
             <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-5">
-              <h2 class="font-semibold text-white mb-4">📝 Input Hasil Match Americano</h2>
-              <div class="space-y-4">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="font-semibold text-white">📝 Input Hasil Match</h2>
+                <div class="flex bg-slate-700/50 rounded-lg p-1">
+                  <button id="btn-mode-single"
+                    class="bg-amber-500 text-slate-900 px-3 py-1 text-xs rounded-md font-bold transition-colors"
+                    onclick="toggleInputMode('single')">Single</button>
+                  <button id="btn-mode-bulk"
+                    class="text-slate-400 hover:text-white px-3 py-1 text-xs rounded-md transition-colors"
+                    onclick="toggleInputMode('bulk')">Bulk CSV</button>
+                </div>
+              </div>
+
+              <!-- Single Input Form -->
+              <div id="form-single-input" class="space-y-4">
                 <div>
                   <label class="text-xs text-slate-400 mb-1 block">Tanggal</label>
                   <input type="date" id="match-date" class="w-full text-sm">
@@ -706,6 +791,36 @@
                   </button>
                 </div>
               </div>
+
+              <!-- Bulk Input Form -->
+              <div id="form-bulk-input" class="space-y-4 hidden">
+                <div class="text-xs text-slate-400 bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                  <p class="font-bold text-amber-400 mb-1">Format CSV/Teks:</p>
+                  <p class="font-mono bg-slate-800 p-2 rounded selectable">Date, PairA_1, PairA_2, PairB_1, PairB_2,
+                    ScoreA, ScoreB, Jenis, MVP</p>
+                  <p class="mt-2 text-[10px] text-slate-500">- Date: YYYY-MM-DD</p>
+                  <p class="text-[10px] text-slate-500">- Jenis: REZIM / SOLO</p>
+                  <p class="text-[10px] text-slate-500">- MVP: Kosongkan jika tidak ada (biarkan tanda koma)</p>
+                  <p class="text-[10px] text-amber-500 mt-1">Note: Pemisah CSV bisa menggunakan koma (,). Baris pertama
+                    yang mengandung teks "Date" akan diabaikan (Header).</p>
+                </div>
+                <div>
+                  <textarea id="bulk-csv-input" rows="8"
+                    placeholder="2026-04-14, Heru, Andi, Kresna, Kukuh, 13, 8, REZIM, Heru&#10;2026-04-14, Mel, Rafly, Enal, Ai, 12, 9, REZIM, "
+                    class="w-full text-xs font-mono bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-300"></textarea>
+                </div>
+                <div class="flex gap-3">
+                  <button onclick="previewBulkCSV()"
+                    class="flex-1 border border-amber-500 text-amber-400 hover:bg-amber-500/10 font-semibold py-2.5 rounded-xl transition-colors text-sm">
+                    👁️ Parse & Preview CSV
+                  </button>
+                  <button id="btn-submit-bulk" onclick="submitBulkMatches()"
+                    class="flex-1 bg-green-500 hover:bg-green-400 text-slate-900 font-bold py-2.5 rounded-xl transition-colors text-sm opacity-50 cursor-not-allowed"
+                    disabled>
+                    ✅ Submit All
+                  </button>
+                </div>
+              </div>
             </div>
 
             <!-- Preview Panel -->
@@ -782,9 +897,12 @@
           <div class="flex items-center justify-between mb-5">
             <div>
               <h2 class="font-bold text-white text-lg">📖 Panduan Algoritma Simulasi</h2>
-              <p class="text-xs text-slate-400 mt-0.5">Dokumentasi formula &amp; aturan sistem &mdash; hanya untuk Super Manager</p>
+              <p class="text-xs text-slate-400 mt-0.5">Dokumentasi formula &amp; aturan sistem &mdash; hanya untuk Super
+                Manager</p>
             </div>
-            <span class="text-xs bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1.5 rounded-lg font-medium">🔒 Confidential</span>
+            <span
+              class="text-xs bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1.5 rounded-lg font-medium">🔒
+              Confidential</span>
           </div>
           <div id="guide-rendered-content" class="space-y-2"></div>
         </div>
@@ -1115,6 +1233,8 @@
           b.classList.add('bg-amber-500', 'text-slate-900', 'font-black');
         }
       });
+      document.getElementById('mobile-menu')?.classList.add('hidden'); // Close mobile menu on click
+
       // Page-specific init
       if (pageId === 'players') renderPlayersPage();
       if (pageId === 'builder') renderBuilderCards();
@@ -1122,6 +1242,11 @@
       if (pageId === 'supermanager') initSuperManager();
       if (pageId === 'home') renderHome();
       window.scrollTo(0, 0);
+    }
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      if (menu) menu.classList.toggle('hidden');
     }
 
     // ============================================================
@@ -1229,13 +1354,102 @@
         <div class="flex items-center gap-3"><span class="text-sm text-slate-300 w-24">🧠 Tactical</span>${ratingBar(p.tac, 'purple')}</div>
         <div class="flex items-center gap-3"><span class="text-sm text-slate-300 w-24">❤️ Mental</span>${ratingBar(p.men, 'red')}</div>
       </div>
+      
+      <!-- Chart Area -->
+      <div class="mb-4 bg-slate-900/50 rounded-xl p-3 border border-slate-700">
+        <h3 class="text-xs text-slate-400 font-bold mb-2">📈 Trend Rating Overall</h3>
+        <div class="relative w-full h-32">
+          <canvas id="playerChart-${id}"></canvas>
+        </div>
+      </div>
+
       <div class="flex gap-2 justify-between">
         ${formBadge(p)} ${statusBadge(p.performance?.status || 'Fit')}
       </div>
       ${p.performance?.lastUpdated ? `<div class="text-xs text-slate-500 mt-3">Terakhir update: ${p.performance.lastUpdated}</div>` : ''}
     </div>`;
       document.getElementById('player-modal').classList.remove('hidden');
+
+      renderPlayerChart(p);
     }
+
+    let globalChartInstance = null;
+    function renderPlayerChart(p) {
+      const ctx = document.getElementById(`playerChart-${p.id}`).getContext('2d');
+      if (globalChartInstance) { globalChartInstance.destroy(); }
+
+      let currentRating = p.overall;
+      let chartData = [currentRating];
+      let chartLabels = ['Current'];
+
+      const playerMatches = gameData.matches.filter(m => [m.pairA.p1, m.pairA.p2, m.pairB.p1, m.pairB.p2].includes(p.name));
+
+      // Calculate backwards
+      playerMatches.forEach(m => {
+        const chg = m.changes?.[p.name];
+        if (chg && chg.stats && Object.keys(chg.stats).length > 0) {
+          let statSumChange = 0;
+          Object.values(chg.stats).forEach(v => statSumChange += v);
+          let prevRating = Math.round((currentRating - (statSumChange / 5)) * 10) / 10;
+          chartData.unshift(prevRating);
+          chartLabels.unshift(m.date);
+          currentRating = prevRating;
+        } else {
+          // No change in stats, just plot the same rating
+          chartData.unshift(currentRating);
+          chartLabels.unshift(m.date);
+        }
+      });
+
+      // If only one data point, duplicate it so chart line draws straight
+      if (chartData.length === 1) {
+        chartData.unshift(currentRating);
+        chartLabels.unshift('Start');
+      }
+
+      globalChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartLabels,
+          datasets: [{
+            label: 'Overall Rating',
+            data: chartData,
+            borderColor: '#fbbf24', // amber-400
+            backgroundColor: 'rgba(251, 191, 36, 0.1)',
+            borderWidth: 2,
+            pointBackgroundColor: '#fff',
+            pointRadius: 3,
+            fill: true,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) { return 'Rating: ' + ctx.raw; }
+              }
+            }
+          },
+          scales: {
+            y: {
+              min: Math.floor(Math.min(...chartData) - 0.5),
+              max: Math.ceil(Math.max(...chartData) + 0.5),
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { display: false } // Hide x-axis labels to save space
+            }
+          }
+        }
+      });
+    }
+
     function closeModal() { document.getElementById('player-modal').classList.add('hidden'); }
 
     // ============================================================
@@ -1257,7 +1471,7 @@
         <div class="font-semibold text-sm text-white truncate">${p.name}</div>
         <span class="text-amber-400 font-bold text-sm ml-1">${p.overall}</span>
       </div>
-      <div class="text-xs px-1.5 py-0.5 rounded-full inline-block ${typeColor(p.type)} mb-2">${typeShort(p.type)}</div>
+      <div class="text-xs px-1.5 py-0.5 rounded-md inline-block ${typeColor(p.type)} mb-2">${typeShort(p.type)}</div>
       ${sel ? '<div class="text-xs text-amber-400 font-bold">✓ Dipilih</div>' : ''}
       ${injured ? '<div class="text-xs text-red-400">❌ Cedera</div>' : ''}
     </div>`;
@@ -1674,8 +1888,8 @@
       document.querySelectorAll('.sm-tab-content').forEach(t => t.classList.add('hidden'));
       document.getElementById(`sm-tab-${tab}`)?.classList.remove('hidden');
       document.querySelectorAll('.sm-tab').forEach(b => {
-        if (b.dataset.tab === tab) b.className = 'sm-tab active-tab bg-amber-500 text-slate-900 font-bold text-sm px-4 py-2 rounded-lg';
-        else b.className = 'sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg';
+        if (b.dataset.tab === tab) b.className = 'sm-tab active-tab bg-amber-500 text-slate-900 font-bold text-sm px-4 py-2 rounded-lg whitespace-nowrap';
+        else b.className = 'sm-tab bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg whitespace-nowrap';
       });
       if (tab === 'players') renderSMPlayerStatus();
       if (tab === 'history') renderMatchHistory();
@@ -1691,8 +1905,9 @@
         icon: '📊',
         title: '1. Dimensi Statistik Pemain',
         content: `
-          <p class="text-xs text-slate-400 mb-3">Setiap pemain memiliki 5 dimensi statistik, rentang nilai <strong class="text-white">65&ndash;95</strong>.</p>
-          <table class="w-full text-xs border-collapse mb-3">
+          <p class="text-xs text-slate-400 mb-3">Setiap pemain punya 5 dimensi statistik, rentang nilai <strong class="text-white">65&ndash;95</strong>.</p>
+          <div class="table-wrap">
+          <table class="w-full text-xs border-collapse mb-3" style="min-width:420px">
             <thead><tr class="bg-slate-700/80">
               <th class="text-left p-2 border border-slate-600 text-amber-400">Kode</th>
               <th class="text-left p-2 border border-slate-600 text-amber-400">Dimensi</th>
@@ -1706,6 +1921,7 @@
               <tr><td class="p-2 border border-slate-700 font-mono text-amber-300">men</td><td class="p-2 border border-slate-700 text-slate-200">Mental Strength</td><td class="p-2 border border-slate-700 text-slate-400">Tekanan, konsistensi, clutch</td></tr>
             </tbody>
           </table>
+          </div>
           <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700">Overall = (atk + def + phy + tac + men) / 5</div>
         `
       },
@@ -1715,32 +1931,35 @@
         title: '2. Algoritma Chemistry Score (0–100)',
         content: `
           <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700 mb-3">
-            Chemistry = (TypeCompat &times; 0.40) + (StatsComplement &times; 0.40) + (RatingSimilarity &times; 0.20) + HistoryBonus
+            Chemistry = (TypeCompat &times;0.4) + (StatsComplement &times;0.4) + (RatingSimilarity &times;0.2) + Bonus
           </div>
           <p class="text-xs text-amber-400 font-semibold mb-2">🔷 Komponen 1 &mdash; Type Compatibility (40%)</p>
-          <table class="w-full text-xs border-collapse mb-3">
+          <div class="table-wrap">
+          <table class="text-xs border-collapse mb-3" style="min-width:360px;width:100%">
             <thead><tr class="bg-slate-700/80">
-              <th class="p-1.5 border border-slate-600 text-slate-300">Tipe</th>
-              <th class="p-1.5 border border-slate-600 text-slate-300">Agg.Atk</th>
-              <th class="p-1.5 border border-slate-600 text-slate-300">Attacker</th>
-              <th class="p-1.5 border border-slate-600 text-slate-300">All Rounder</th>
-              <th class="p-1.5 border border-slate-600 text-slate-300">Defensive</th>
-              <th class="p-1.5 border border-slate-600 text-slate-300">Pure Def</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300 text-left">Tipe</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300 text-center">Agg.Atk</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300 text-center">Attacker</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300 text-center">AllRnd</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300 text-center">Def</th>
+              <th class="p-1.5 border border-slate-600 text-slate-300 text-center">PureDef</th>
             </tr></thead>
             <tbody class="text-center">
-              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Agg.Atk</td><td class="p-1.5 border border-slate-700 text-slate-400">70%</td><td class="p-1.5 border border-slate-700 text-slate-400">75%</td><td class="p-1.5 border border-slate-700 text-slate-400">82%</td><td class="p-1.5 border border-slate-700 text-slate-400">88%</td><td class="p-1.5 border border-slate-700 text-amber-400 font-bold">95%</td></tr>
-              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Attacker</td><td class="p-1.5 border border-slate-700 text-slate-400">75%</td><td class="p-1.5 border border-slate-700 text-slate-400">70%</td><td class="p-1.5 border border-slate-700 text-slate-400">83%</td><td class="p-1.5 border border-slate-700 text-amber-400 font-bold">90%</td><td class="p-1.5 border border-slate-700 text-slate-400">85%</td></tr>
-              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">All Rounder</td><td class="p-1.5 border border-slate-700 text-slate-400">82%</td><td class="p-1.5 border border-slate-700 text-slate-400">83%</td><td class="p-1.5 border border-slate-700 text-green-400 font-bold">85%</td><td class="p-1.5 border border-slate-700 text-slate-400">84%</td><td class="p-1.5 border border-slate-700 text-slate-400">82%</td></tr>
-              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Defensive</td><td class="p-1.5 border border-slate-700 text-slate-400">88%</td><td class="p-1.5 border border-slate-700 text-amber-400 font-bold">90%</td><td class="p-1.5 border border-slate-700 text-slate-400">84%</td><td class="p-1.5 border border-slate-700 text-slate-400">70%</td><td class="p-1.5 border border-slate-700 text-slate-400">80%</td></tr>
-              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Pure Def</td><td class="p-1.5 border border-slate-700 text-amber-400 font-bold">95%</td><td class="p-1.5 border border-slate-700 text-slate-400">85%</td><td class="p-1.5 border border-slate-700 text-slate-400">82%</td><td class="p-1.5 border border-slate-700 text-slate-400">80%</td><td class="p-1.5 border border-slate-700 text-slate-400">70%</td></tr>
+              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Agg.Atk</td><td class="p-1 border border-slate-700 text-slate-400">70%</td><td class="p-1 border border-slate-700 text-slate-400">75%</td><td class="p-1 border border-slate-700 text-slate-400">82%</td><td class="p-1 border border-slate-700 text-slate-400">88%</td><td class="p-1 border border-slate-700 text-amber-400 font-bold">95%</td></tr>
+              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Attacker</td><td class="p-1 border border-slate-700 text-slate-400">75%</td><td class="p-1 border border-slate-700 text-slate-400">70%</td><td class="p-1 border border-slate-700 text-slate-400">83%</td><td class="p-1 border border-slate-700 text-amber-400 font-bold">90%</td><td class="p-1 border border-slate-700 text-slate-400">85%</td></tr>
+              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">All Rounder</td><td class="p-1 border border-slate-700 text-slate-400">82%</td><td class="p-1 border border-slate-700 text-slate-400">83%</td><td class="p-1 border border-slate-700 text-green-400 font-bold">85%</td><td class="p-1 border border-slate-700 text-slate-400">84%</td><td class="p-1 border border-slate-700 text-slate-400">82%</td></tr>
+              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Defensive</td><td class="p-1 border border-slate-700 text-slate-400">88%</td><td class="p-1 border border-slate-700 text-amber-400 font-bold">90%</td><td class="p-1 border border-slate-700 text-slate-400">84%</td><td class="p-1 border border-slate-700 text-slate-400">70%</td><td class="p-1 border border-slate-700 text-slate-400">80%</td></tr>
+              <tr><td class="p-1.5 border border-slate-700 text-left text-slate-300">Pure Def</td><td class="p-1 border border-slate-700 text-amber-400 font-bold">95%</td><td class="p-1 border border-slate-700 text-slate-400">85%</td><td class="p-1 border border-slate-700 text-slate-400">82%</td><td class="p-1 border border-slate-700 text-slate-400">80%</td><td class="p-1 border border-slate-700 text-slate-400">70%</td></tr>
             </tbody>
           </table>
+          </div>
           <p class="text-xs text-amber-400 font-semibold mb-2">🔷 Komponen 2 &mdash; Stats Complementary (40%)</p>
           <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700 mb-3">
             coverScore(dim) = min(100, 70 + |A-B| &times; 1.5)<br>
-            StatsComplement = avg(coverScore semua 5 dimensi)
+            StatsComplement = avg(5 dimensi)
           </div>
           <p class="text-xs text-amber-400 font-semibold mb-2">🔷 Komponen 3 &mdash; Rating Similarity (20%)</p>
+          <div class="table-wrap">
           <table class="w-full text-xs border-collapse mb-2">
             <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Selisih Overall</th><th class="text-left p-2 border border-slate-600 text-amber-400">Skor</th></tr></thead>
             <tbody>
@@ -1749,7 +1968,8 @@
               <tr><td class="p-2 border border-slate-700 text-slate-300">&gt; 5 poin</td><td class="p-2 border border-slate-700 text-slate-400">70%</td></tr>
             </tbody>
           </table>
-          <p class="text-xs text-slate-400"><span class="text-blue-400">⚡</span> HistoryBonus = +2 per match (jika memenuhi syarat chemistry), maks kumulatif +15</p>
+          </div>
+          <p class="text-xs text-slate-400"><span class="text-blue-400">⚡</span> HistoryBonus = +2 per match memenuhi syarat, maks +15 kumulatif</p>
         `
       },
       {
@@ -1758,201 +1978,178 @@
         title: '3. Algoritma Pair Rating',
         content: `
           <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700 mb-3">
-            Base      = (Overall_P1 + Overall_P2) / 2<br>
+            Base       = (Overall_P1 + Overall_P2) / 2<br>
             PairRating = Base &times; InjuryP1 &times; InjuryP2 &times; ChemMult + FormBonus
           </div>
           <p class="text-xs text-amber-400 font-semibold mb-2">Chemistry Multiplier</p>
+          <div class="table-wrap">
           <table class="w-full text-xs border-collapse mb-3">
-            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Chemistry Score</th><th class="text-left p-2 border border-slate-600 text-amber-400">Multiplier</th></tr></thead>
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Chemistry</th><th class="text-left p-2 border border-slate-600 text-amber-400">Multiplier</th></tr></thead>
             <tbody>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">90 &ndash; 100%</td><td class="p-2 border border-slate-700 text-yellow-400 font-bold">1.10&times;</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">80 &ndash; 89%</td><td class="p-2 border border-slate-700 text-amber-400 font-bold">1.08&times;</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">70 &ndash; 79%</td><td class="p-2 border border-slate-700 text-slate-300">1.05&times;</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">&lt; 70%</td><td class="p-2 border border-slate-700 text-slate-400">1.00&times;</td></tr>
+              <tr><td class="p-2 border border-slate-700">90&ndash;100%</td><td class="p-2 border border-slate-700 text-yellow-400 font-bold">1.10&times;</td></tr>
+              <tr><td class="p-2 border border-slate-700">80&ndash;89%</td><td class="p-2 border border-slate-700 text-amber-400 font-bold">1.08&times;</td></tr>
+              <tr><td class="p-2 border border-slate-700">70&ndash;79%</td><td class="p-2 border border-slate-700 text-slate-300">1.05&times;</td></tr>
+              <tr><td class="p-2 border border-slate-700">&lt;70%</td><td class="p-2 border border-slate-700 text-slate-400">1.00&times;</td></tr>
             </tbody>
           </table>
+          </div>
           <p class="text-xs text-amber-400 font-semibold mb-2">Form Bonus (per pemain)</p>
+          <div class="table-wrap">
           <table class="w-full text-xs border-collapse">
             <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Status</th><th class="text-left p-2 border border-slate-600 text-amber-400">Syarat</th><th class="text-left p-2 border border-slate-600 text-amber-400">Bonus</th></tr></thead>
             <tbody>
-              <tr><td class="p-2 border border-slate-700">🔥 Hot</td><td class="p-2 border border-slate-700 text-slate-400">Streak &ge;5 win</td><td class="p-2 border border-slate-700 text-green-400">+2.5</td></tr>
-              <tr><td class="p-2 border border-slate-700">✅ Good</td><td class="p-2 border border-slate-700 text-slate-400">Streak &ge;3 win</td><td class="p-2 border border-slate-700 text-green-400">+1.5</td></tr>
-              <tr><td class="p-2 border border-slate-700">➡️ Normal</td><td class="p-2 border border-slate-700 text-slate-400">0&ndash;2 win</td><td class="p-2 border border-slate-700 text-slate-400">0</td></tr>
+              <tr><td class="p-2 border border-slate-700">🔥 Hot</td><td class="p-2 border border-slate-700 text-slate-400">Streak &ge;5</td><td class="p-2 border border-slate-700 text-green-400">+2.5</td></tr>
+              <tr><td class="p-2 border border-slate-700">✅ Good</td><td class="p-2 border border-slate-700 text-slate-400">Streak &ge;3</td><td class="p-2 border border-slate-700 text-green-400">+1.5</td></tr>
+              <tr><td class="p-2 border border-slate-700">➡️ Normal</td><td class="p-2 border border-slate-700 text-slate-400">0&ndash;2</td><td class="p-2 border border-slate-700 text-slate-400">0</td></tr>
               <tr><td class="p-2 border border-slate-700">❄️ Cold</td><td class="p-2 border border-slate-700 text-slate-400">Streak &le;-3</td><td class="p-2 border border-slate-700 text-red-400">&minus;1.5</td></tr>
             </tbody>
           </table>
-          <p class="text-xs text-slate-400 mt-2">InjuryMod = 0.9 jika Minor Injury, 1.0 jika Fit. Total FormBonus = P1 + P2.</p>
+          </div>
+          <p class="text-xs text-slate-400 mt-2">InjuryMod = 0.9 jika Minor Injury. FormBonus = P1 + P2.</p>
         `
       },
       {
         id: 'winprob',
         icon: '🎯',
-        title: '4. Win Probability (Fungsi Sigmoid)',
+        title: '4. Win Probability (Sigmoid)',
         content: `
           <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700 mb-3">
             diff  = PairRating_A &minus; PairRating_B<br>
-            probA = clamp( 1 / (1 + e<sup>&minus;diff&times;0.15</sup>), min=0.10, max=0.90 )<br>
+            probA = clamp( 1/(1 + e<sup>&minus;diff&times;0.15</sup>), 0.10, 0.90 )<br>
             probB = 1 &minus; probA
           </div>
+          <div class="table-wrap">
           <table class="w-full text-xs border-collapse">
             <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Selisih Rating</th><th class="text-left p-2 border border-slate-600 text-amber-400">Win Prob. Unggulan</th></tr></thead>
             <tbody>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">0 (setara)</td><td class="p-2 border border-slate-700 text-slate-300">~50%</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">3</td><td class="p-2 border border-slate-700 text-slate-300">~58%</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">5</td><td class="p-2 border border-slate-700 text-amber-400">~65%</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">10</td><td class="p-2 border border-slate-700 text-orange-400">~78%</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">15+</td><td class="p-2 border border-slate-700 text-red-400">~86&ndash;90% (di-cap)</td></tr>
+              <tr><td class="p-2 border border-slate-700">0 (setara)</td><td class="p-2 border border-slate-700">~50%</td></tr>
+              <tr><td class="p-2 border border-slate-700">3</td><td class="p-2 border border-slate-700">~58%</td></tr>
+              <tr><td class="p-2 border border-slate-700">5</td><td class="p-2 border border-slate-700 text-amber-400">~65%</td></tr>
+              <tr><td class="p-2 border border-slate-700">10</td><td class="p-2 border border-slate-700 text-orange-400">~78%</td></tr>
+              <tr><td class="p-2 border border-slate-700">15+</td><td class="p-2 border border-slate-700 text-red-400">~86&ndash;90% (capped)</td></tr>
             </tbody>
           </table>
+          </div>
         `
       },
       {
         id: 'categories',
         icon: '🏆',
-        title: '5. Kategorisasi Hasil & Update Stats',
+        title: '5. Kategori Hasil &amp; Update Stats',
         content: `
-          <p class="text-xs text-amber-400 font-semibold mb-2">Kategori Kemenangan (berdasarkan margin skor)</p>
-          <table class="w-full text-xs border-collapse mb-4">
-            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Margin</th><th class="text-left p-2 border border-slate-600 text-amber-400">Kategori</th><th class="text-left p-2 border border-slate-600 text-amber-400">Contoh Skor</th></tr></thead>
+          <div class="table-wrap">
+          <table class="w-full text-xs border-collapse mb-3">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Margin</th><th class="text-left p-2 border border-slate-600 text-amber-400">Kategori</th><th class="text-left p-2 border border-slate-600 text-amber-400">Contoh</th></tr></thead>
             <tbody>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">&ge;10 poin</td><td class="p-2 border border-slate-700 text-red-400 font-bold">DOMINANT</td><td class="p-2 border border-slate-700 text-slate-400">17-4, 18-3</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">5&ndash;9 poin</td><td class="p-2 border border-slate-700 text-amber-400 font-bold">COMFORTABLE</td><td class="p-2 border border-slate-700 text-slate-400">13-8, 14-7</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">1&ndash;4 poin</td><td class="p-2 border border-slate-700 text-blue-400 font-bold">CLOSE</td><td class="p-2 border border-slate-700 text-slate-400">11-10, 12-9</td></tr>
+              <tr><td class="p-2 border border-slate-700">&ge;10</td><td class="p-2 border border-slate-700 text-red-400 font-bold">DOMINANT</td><td class="p-2 border border-slate-700 text-slate-400">17-4</td></tr>
+              <tr><td class="p-2 border border-slate-700">5&ndash;9</td><td class="p-2 border border-slate-700 text-amber-400 font-bold">COMFORTABLE</td><td class="p-2 border border-slate-700 text-slate-400">13-8</td></tr>
+              <tr><td class="p-2 border border-slate-700">1&ndash;4</td><td class="p-2 border border-slate-700 text-blue-400 font-bold">CLOSE</td><td class="p-2 border border-slate-700 text-slate-400">12-9</td></tr>
             </tbody>
           </table>
-          <p class="text-xs text-amber-400 font-semibold mb-2">Perubahan Stats Pemenang</p>
+          </div>
+          <div class="table-wrap">
           <table class="w-full text-xs border-collapse mb-3">
             <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Kategori</th><th class="text-left p-2 border border-slate-600 text-amber-400">Stats Winner</th></tr></thead>
             <tbody>
-              <tr><td class="p-2 border border-slate-700 text-red-400">DOMINANT</td><td class="p-2 border border-slate-700 text-green-400">+2 ke stat terkuat</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-amber-400">COMFORTABLE</td><td class="p-2 border border-slate-700 text-green-400">+1 ke stat terkuat</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-blue-400">CLOSE</td><td class="p-2 border border-slate-700 text-green-400">+1 Mental Strength</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-red-400">DOMINANT</td><td class="p-2 border border-slate-700 text-green-400">+2 stat terkuat</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-amber-400">COMFORTABLE</td><td class="p-2 border border-slate-700 text-green-400">+1 stat terkuat</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-blue-400">CLOSE</td><td class="p-2 border border-slate-700 text-green-400">+1 Mental</td></tr>
             </tbody>
           </table>
-          <p class="text-xs text-slate-300 mb-1">⭐ MVP bonus: +1 stat terkuat tambahan, +1 Mental</p>
-          <p class="text-xs text-slate-300 mb-3">⚪ CLOSE loss: Pihak kalah mendapat +0.5 Mental (berjuang keras)</p>
-          <p class="text-xs text-slate-500">Catatan: Kekalahan tidak pernah mengurangi stats. Stats hanya naik dari kemenangan atau CLOSE loss.</p>
+          </div>
+          <p class="text-xs text-slate-300 mb-1">⭐ MVP: +1 stat terkuat tambahan, +1 Mental</p>
+          <p class="text-xs text-slate-300">⚪ CLOSE loss: +0.5 Mental (berjuang keras)</p>
         `
       },
       {
-        id: 'chemistry_rules',
+        id: 'chem_rules',
         icon: '🧪',
         title: '6. Aturan Chemistry Update',
         content: `
-          <table class="w-full text-xs border-collapse mb-3">
+          <div class="table-wrap">
+          <table class="w-full text-xs border-collapse mb-3" style="min-width:360px">
             <thead><tr class="bg-slate-700/80">
-              <th class="text-left p-2 border border-slate-600 text-amber-400">Jenis Match</th>
-              <th class="text-left p-2 border border-slate-600 text-amber-400">Komposisi Pair</th>
+              <th class="text-left p-2 border border-slate-600 text-amber-400">Jenis</th>
+              <th class="text-left p-2 border border-slate-600 text-amber-400">Pair</th>
               <th class="text-left p-2 border border-slate-600 text-amber-400">Hasil</th>
-              <th class="text-left p-2 border border-slate-600 text-amber-400">Chemistry</th>
+              <th class="text-left p-2 border border-slate-600 text-amber-400">Chem</th>
             </tr></thead>
             <tbody>
-              <tr>
-                <td class="p-2 border border-slate-700 text-slate-300">REZIM (Internal)</td>
-                <td class="p-2 border border-slate-700 text-slate-300">Keduanya Rezim</td>
-                <td class="p-2 border border-slate-700 text-green-400">Menang</td>
-                <td class="p-2 border border-slate-700 text-green-400 font-bold">✅ +2</td>
-              </tr>
-              <tr>
-                <td class="p-2 border border-slate-700 text-slate-300">REZIM (Internal)</td>
-                <td class="p-2 border border-slate-700 text-slate-300">Keduanya Rezim</td>
-                <td class="p-2 border border-slate-700 text-red-400">Kalah</td>
-                <td class="p-2 border border-slate-700 text-green-400">✅ +2 (tetap dapat)</td>
-              </tr>
-              <tr>
-                <td class="p-2 border border-slate-700 text-slate-300">SOLO (vs External)</td>
-                <td class="p-2 border border-slate-700 text-slate-300">Keduanya Rezim</td>
-                <td class="p-2 border border-slate-700 text-green-400 font-bold">Menang</td>
-                <td class="p-2 border border-slate-700 text-green-400 font-bold">✅ +2</td>
-              </tr>
-              <tr>
-                <td class="p-2 border border-slate-700 text-slate-300">SOLO (vs External)</td>
-                <td class="p-2 border border-slate-700 text-slate-300">Keduanya Rezim</td>
-                <td class="p-2 border border-slate-700 text-red-400 font-bold">Kalah</td>
-                <td class="p-2 border border-slate-700 text-red-400">❌ 0</td>
-              </tr>
-              <tr>
-                <td class="p-2 border border-slate-700 text-slate-400">SOLO / REZIM</td>
-                <td class="p-2 border border-slate-700 text-slate-400">Ada External dalam pair</td>
-                <td class="p-2 border border-slate-700 text-slate-400">Win/Loss</td>
-                <td class="p-2 border border-slate-700 text-red-400">❌ 0</td>
-              </tr>
+              <tr><td class="p-2 border border-slate-700">REZIM</td><td class="p-2 border border-slate-700">Kedua Rezim</td><td class="p-2 border border-slate-700 text-green-400">Menang</td><td class="p-2 border border-slate-700 text-green-400 font-bold">✅ +2</td></tr>
+              <tr><td class="p-2 border border-slate-700">REZIM</td><td class="p-2 border border-slate-700">Kedua Rezim</td><td class="p-2 border border-slate-700 text-red-400">Kalah</td><td class="p-2 border border-slate-700 text-green-400">✅ +2</td></tr>
+              <tr><td class="p-2 border border-slate-700">SOLO</td><td class="p-2 border border-slate-700">Kedua Rezim</td><td class="p-2 border border-slate-700 text-green-400 font-bold">Menang</td><td class="p-2 border border-slate-700 text-green-400 font-bold">✅ +2</td></tr>
+              <tr><td class="p-2 border border-slate-700">SOLO</td><td class="p-2 border border-slate-700">Kedua Rezim</td><td class="p-2 border border-slate-700 text-red-400 font-bold">Kalah</td><td class="p-2 border border-slate-700 text-red-400">❌ 0</td></tr>
+              <tr><td class="p-2 border border-slate-700 text-slate-500">Any</td><td class="p-2 border border-slate-700 text-slate-500">Ada External</td><td class="p-2 border border-slate-700 text-slate-500">Any</td><td class="p-2 border border-slate-700 text-red-400">❌ 0</td></tr>
             </tbody>
           </table>
+          </div>
           <div class="bg-slate-900/60 rounded-lg p-3 font-mono text-xs text-green-300 border border-slate-700">
-            chemistry[PairKey] += 2 &nbsp;&nbsp;&lt;&mdash; per match yang memenuhi syarat<br>
-            chemistry max kumulatif = base + 15 poin bonus
+            chemistry[Pair] += 2  (max kumulatif +15)
           </div>
         `
       },
       {
         id: 'external',
         icon: '🌐',
-        title: '7. Match Solo vs Tim Luar Rezim (External)',
+        title: '7. Match vs Tim Luar Rezim',
         content: `
-          <p class="text-xs text-slate-400 mb-3">Gunakan 3 slot dummy <strong class="text-blue-400">🌐 External A / B / C</strong> sebagai placeholder lawan di luar Rezim70.</p>
-          <p class="text-xs text-amber-400 font-semibold mb-2">Aturan External Player</p>
-          <ul class="text-xs space-y-1 mb-4">
-            <li class="flex gap-2"><span class="text-red-400">❌</span><span class="text-slate-300">Tidak punya stats → tidak ada update statistik</span></li>
-            <li class="flex gap-2"><span class="text-red-400">❌</span><span class="text-slate-300">Tidak bisa dipilih sebagai MVP</span></li>
-            <li class="flex gap-2"><span class="text-red-400">❌</span><span class="text-slate-300">Tidak menghasilkan chemistry bonus</span></li>
-            <li class="flex gap-2"><span class="text-green-400">✅</span><span class="text-slate-300">Tercatat di match history sebagai lawan</span></li>
+          <p class="text-xs text-slate-400 mb-3">3 slot dummy: <strong class="text-blue-400">🌐 External A / B / C</strong></p>
+          <ul class="text-xs space-y-1.5 mb-4">
+            <li class="flex gap-2 items-start"><span class="text-red-400 mt-0.5">❌</span><span class="text-slate-300">Tidak punya stats &rarr; tidak ada update</span></li>
+            <li class="flex gap-2 items-start"><span class="text-red-400 mt-0.5">❌</span><span class="text-slate-300">Tidak bisa dipilih sebagai MVP</span></li>
+            <li class="flex gap-2 items-start"><span class="text-red-400 mt-0.5">❌</span><span class="text-slate-300">Tidak menghasilkan chemistry bonus (partner)</span></li>
+            <li class="flex gap-2 items-start"><span class="text-green-400 mt-0.5">✅</span><span class="text-slate-300">Tercatat di match history sebagai lawan</span></li>
           </ul>
-          <p class="text-xs text-amber-400 font-semibold mb-2">Skenario A &mdash; Rezim Solo (partner juga External)</p>
-          <div class="bg-slate-900/60 rounded-lg p-3 text-xs border border-slate-700 mb-3">
-            <p class="text-slate-300 font-mono mb-1">Hendra + External A  vs  External B + External C</p>
-            <p class="text-slate-400">Hendra: stats diupdate sesuai W/L &bull; Chemistry: ❌ (partner external)</p>
+          <div class="space-y-3">
+            <div class="bg-slate-900/60 rounded-lg p-3 text-xs border border-slate-700">
+              <p class="text-amber-400 font-semibold mb-1">Skenario A &mdash; Solo (partner external)</p>
+              <p class="font-mono text-slate-300 mb-1">Hendra + ExtA  vs  ExtB + ExtC</p>
+              <p class="text-slate-400">Hendra: stats W/L &bull; Chemistry: ❌</p>
+            </div>
+            <div class="bg-slate-900/60 rounded-lg p-3 text-xs border border-slate-700">
+              <p class="text-amber-400 font-semibold mb-1">Skenario B &mdash; Dua Rezim berpasangan</p>
+              <p class="font-mono text-slate-300 mb-1">Ponti + Kresna  vs  ExtA + ExtB</p>
+              <p class="text-green-400">WIN: stats + Chemistry Ponti&ndash;Kresna +2 ✅</p>
+              <p class="text-red-400 mt-0.5">LOSS: stats saja, Chemistry ❌ 0</p>
+            </div>
           </div>
-          <p class="text-xs text-amber-400 font-semibold mb-2">Skenario B &mdash; Dua Rezim Berpasangan vs External</p>
-          <div class="bg-slate-900/60 rounded-lg p-3 text-xs border border-slate-700 mb-3">
-            <p class="text-slate-300 font-mono mb-1">Ponti + Kresna  vs  External A + External B</p>
-            <p class="text-green-400">WIN: stats diupdate + Chemistry Ponti&ndash;Kresna +2 ✅</p>
-            <p class="text-red-400 mt-0.5">LOSS: stats tidak berubah (kec. CLOSE loss +0.5 Mental), Chemistry ❌ 0</p>
-          </div>
-          <p class="text-xs text-amber-400 font-semibold mb-2">Cara Input di Super Manager</p>
+          <p class="text-xs text-amber-400 font-semibold mt-4 mb-2">Cara input:</p>
           <ol class="text-xs text-slate-300 space-y-1 list-decimal ml-4">
-            <li>Pair A → pilih pemain Rezim dari dropdown utama</li>
-            <li>Pair B → scroll ke bagian <span class="text-blue-400">&ldquo;Tim Luar Rezim&rdquo;</span>, pilih External A/B/C</li>
-            <li>Jenis Latihan → pilih <em>Solo / Di Luar Rezim</em></li>
-            <li>MVP hanya bisa dipilih dari pemain Rezim</li>
-            <li>Preview akan muncul banner biru sebagai indikator match external</li>
+            <li>Pair A &rarr; pilih pemain Rezim</li>
+            <li>Pair B &rarr; scroll ke <span class="text-blue-400">&ldquo;Tim Luar Rezim&rdquo;</span></li>
+            <li>Jenis: <em>Solo / Di Luar Rezim</em></li>
+            <li>Preview: banner biru muncul sebagai indikator</li>
           </ol>
         `
       },
       {
         id: 'example',
         icon: '📝',
-        title: '8. Contoh Perhitungan: Enal+Ai vs Rafly+Rifky (9-12)',
+        title: '8. Contoh: Enal+Ai vs Rafly+Rifky (9-12)',
         content: `
-          <p class="text-xs text-slate-400 mb-3">Trace lengkap algoritma untuk pertandingan nyata &mdash; CLOSE WIN, Rafly+Rifky menang.</p>
-          <p class="text-xs text-amber-400 font-semibold mb-2">Chemistry Score</p>
-          <table class="w-full text-xs border-collapse mb-1">
-            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Pair</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Type Compat</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Stats Comp</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Rating Sim</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Final</th></tr></thead>
+          <p class="text-xs text-slate-400 mb-3">CLOSE WIN, score 9-12, Rafly+Rifky menang. Semua Rezim, match internal.</p>
+          <div class="table-wrap">
+          <table class="text-xs border-collapse mb-3" style="min-width:380px;width:100%">
+            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Pair</th><th class="p-2 border border-slate-600 text-amber-400 text-center">TypeC</th><th class="p-2 border border-slate-600 text-amber-400 text-center">StatsC</th><th class="p-2 border border-slate-600 text-amber-400 text-center">RatSim</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Chem</th><th class="p-2 border border-slate-600 text-amber-400 text-center">PairRat</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Prob</th></tr></thead>
             <tbody>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">Enal + Ai</td><td class="p-2 border border-slate-700 text-center">95%</td><td class="p-2 border border-slate-700 text-center">73.9%</td><td class="p-2 border border-slate-700 text-center">100%</td><td class="p-2 border border-slate-700 text-center text-amber-400 font-bold">88%</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">Rafly + Rifky</td><td class="p-2 border border-slate-700 text-center">90%</td><td class="p-2 border border-slate-700 text-center">71.8%</td><td class="p-2 border border-slate-700 text-center">100%</td><td class="p-2 border border-slate-700 text-center text-amber-400 font-bold">85%</td></tr>
+              <tr><td class="p-2 border border-slate-700">Enal+Ai</td><td class="p-2 border border-slate-700 text-center">95%</td><td class="p-2 border border-slate-700 text-center">73.9%</td><td class="p-2 border border-slate-700 text-center">100%</td><td class="p-2 border border-slate-700 text-center text-amber-400 font-bold">88%</td><td class="p-2 border border-slate-700 text-center font-bold">83.5</td><td class="p-2 border border-slate-700 text-center text-slate-400">47.4%</td></tr>
+              <tr><td class="p-2 border border-slate-700">Rafly+Rifky</td><td class="p-2 border border-slate-700 text-center">90%</td><td class="p-2 border border-slate-700 text-center">71.8%</td><td class="p-2 border border-slate-700 text-center">100%</td><td class="p-2 border border-slate-700 text-center text-amber-400 font-bold">85%</td><td class="p-2 border border-slate-700 text-center font-bold">84.2</td><td class="p-2 border border-slate-700 text-center text-green-400 font-bold">52.6%</td></tr>
             </tbody>
           </table>
-          <p class="text-xs text-slate-400 mb-3">&bull; Enal (Agg.Attacker) + Ai (Pure Def) = 95% (kombinasi ideal)</p>
-          <p class="text-xs text-amber-400 font-semibold mb-2">Pair Rating &amp; Win Probability</p>
-          <table class="w-full text-xs border-collapse mb-3">
-            <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Pair</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Base Rat.</th><th class="p-2 border border-slate-600 text-amber-400 text-center">ChemMult</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Pair Rat.</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Win Prob</th></tr></thead>
-            <tbody>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">Enal + Ai</td><td class="p-2 border border-slate-700 text-center">77.3</td><td class="p-2 border border-slate-700 text-center">1.08&times;</td><td class="p-2 border border-slate-700 text-center font-bold">83.5</td><td class="p-2 border border-slate-700 text-center text-slate-400">47.4%</td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">Rafly + Rifky</td><td class="p-2 border border-slate-700 text-center">78.0</td><td class="p-2 border border-slate-700 text-center">1.08&times;</td><td class="p-2 border border-slate-700 text-center font-bold">84.2</td><td class="p-2 border border-slate-700 text-center text-green-400 font-bold">52.6%</td></tr>
-            </tbody>
-          </table>
-          <p class="text-xs text-amber-400 font-semibold mb-2">Update Stats (CLOSE WIN, margin = 3)</p>
+          </div>
+          <p class="text-xs text-slate-400 mb-3">Enal (Agg.Attacker) + Ai (Pure Def) = 95% &mdash; kombinasi ideal. Rafly+Rifky menang tipis (52.6%) karena Overall lebih tinggi.</p>
+          <div class="table-wrap">
           <table class="w-full text-xs border-collapse">
             <thead><tr class="bg-slate-700/80"><th class="text-left p-2 border border-slate-600 text-amber-400">Pemain</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Status</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Mental</th><th class="p-2 border border-slate-600 text-amber-400 text-center">Overall</th></tr></thead>
             <tbody>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">Rafly</td><td class="p-2 border border-slate-700 text-center text-green-400">Winner</td><td class="p-2 border border-slate-700 text-center">78 &rarr; <span class="text-green-400">79</span></td><td class="p-2 border border-slate-700 text-center">78.0 &rarr; <span class="text-green-400">78.2</span></td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">Rifky</td><td class="p-2 border border-slate-700 text-center text-green-400">Winner</td><td class="p-2 border border-slate-700 text-center">78 &rarr; <span class="text-green-400">79</span></td><td class="p-2 border border-slate-700 text-center">78.0 &rarr; <span class="text-green-400">78.2</span></td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">Enal</td><td class="p-2 border border-slate-700 text-center text-blue-400">CLOSE loss</td><td class="p-2 border border-slate-700 text-center">77 &rarr; <span class="text-blue-400">77.5</span></td><td class="p-2 border border-slate-700 text-center">77.6 &rarr; <span class="text-blue-400">77.7</span></td></tr>
-              <tr><td class="p-2 border border-slate-700 text-slate-300">Ai</td><td class="p-2 border border-slate-700 text-center text-blue-400">CLOSE loss</td><td class="p-2 border border-slate-700 text-center">77 &rarr; <span class="text-blue-400">77.5</span></td><td class="p-2 border border-slate-700 text-center">77.0 &rarr; <span class="text-blue-400">77.1</span></td></tr>
+              <tr><td class="p-2 border border-slate-700">Rafly</td><td class="p-2 border border-slate-700 text-center text-green-400">Win</td><td class="p-2 border border-slate-700 text-center">78&rarr;<span class="text-green-400">79</span></td><td class="p-2 border border-slate-700 text-center">78.0&rarr;<span class="text-green-400">78.2</span></td></tr>
+              <tr><td class="p-2 border border-slate-700">Rifky</td><td class="p-2 border border-slate-700 text-center text-green-400">Win</td><td class="p-2 border border-slate-700 text-center">78&rarr;<span class="text-green-400">79</span></td><td class="p-2 border border-slate-700 text-center">78.0&rarr;<span class="text-green-400">78.2</span></td></tr>
+              <tr><td class="p-2 border border-slate-700">Enal</td><td class="p-2 border border-slate-700 text-center text-blue-400">CLOSE L</td><td class="p-2 border border-slate-700 text-center">77&rarr;<span class="text-blue-400">77.5</span></td><td class="p-2 border border-slate-700 text-center">77.6&rarr;<span class="text-blue-400">77.7</span></td></tr>
+              <tr><td class="p-2 border border-slate-700">Ai</td><td class="p-2 border border-slate-700 text-center text-blue-400">CLOSE L</td><td class="p-2 border border-slate-700 text-center">77&rarr;<span class="text-blue-400">77.5</span></td><td class="p-2 border border-slate-700 text-center">77.0&rarr;<span class="text-blue-400">77.1</span></td></tr>
             </tbody>
           </table>
-          <p class="text-xs text-blue-400 mt-2">⚗️ Chemistry update: Kedua pair REZIM match &rarr; masing-masing +2</p>
+          </div>
+          <p class="text-xs text-blue-400 mt-2">⚗️ Chemistry: REZIM match &rarr; kedua pair +2</p>
         `
       }
     ];
@@ -2043,6 +2240,122 @@
     }
 
     function updateMatchPreview() { /* live preview updated via previewMatchChanges */ }
+
+    // ============================================================
+    //  BULK INPUT / CSV LOGIC
+    // ============================================================
+    let parsedBulkMatches = [];
+
+    function toggleInputMode(mode) {
+      if (mode === 'single') {
+        document.getElementById('form-single-input').classList.remove('hidden');
+        document.getElementById('form-bulk-input').classList.add('hidden');
+        document.getElementById('btn-mode-single').classList.replace('text-slate-400', 'bg-amber-500');
+        document.getElementById('btn-mode-single').classList.replace('hover:text-white', 'text-slate-900');
+        document.getElementById('btn-mode-bulk').classList.replace('bg-amber-500', 'text-slate-400');
+        document.getElementById('btn-mode-bulk').classList.replace('text-slate-900', 'hover:text-white');
+      } else {
+        document.getElementById('form-single-input').classList.add('hidden');
+        document.getElementById('form-bulk-input').classList.remove('hidden');
+        document.getElementById('btn-mode-bulk').classList.replace('text-slate-400', 'bg-amber-500');
+        document.getElementById('btn-mode-bulk').classList.replace('hover:text-white', 'text-slate-900');
+        document.getElementById('btn-mode-single').classList.replace('bg-amber-500', 'text-slate-400');
+        document.getElementById('btn-mode-single').classList.replace('text-slate-900', 'hover:text-white');
+      }
+    }
+
+    function previewBulkCSV() {
+      const text = document.getElementById('bulk-csv-input').value.trim();
+      if (!text) { toast('CSV kosong!', 'amber'); return; }
+
+      const lines = text.split('\n');
+      parsedBulkMatches = [];
+      let html = `<div class="overflow-x-auto"><table class="w-full text-xs text-left text-slate-300">`;
+      html += `<tr class="border-b border-slate-700 bg-slate-750"><th class="p-2">Date</th><th class="p-2">Pair A</th><th class="p-2">Pair B</th><th class="p-2 text-center">Score</th><th class="p-2">Type</th><th class="p-2">MVP</th><th class="p-2">Validate</th></tr>`;
+
+      let allValid = true;
+      let matchCount = 0;
+
+      lines.forEach((line, i) => {
+        if (!line.trim()) return;
+        if (line.toLowerCase().includes('date,')) return; // Skip header
+
+        const cols = line.split(',').map(s => s.trim());
+        if (cols.length < 8) return;
+
+        // Expected format: Date, PairA_1, PairA_2, PairB_1, PairB_2, ScoreA, ScoreB, Jenis, MVP
+        const [date, a1, a2, b1, b2, sA_str, sB_str, matchType, mvp_raw] = cols;
+        const sA = parseInt(sA_str) || 0;
+        const sB = parseInt(sB_str) || 0;
+        const mvp = mvp_raw || '';
+
+        let valid = true;
+        let cmt = [];
+
+        if (!getPlayer(a1) && !isExternal(a1)) { cmt.push(`Unknown ${a1}`); valid = false; }
+        if (!getPlayer(a2) && !isExternal(a2)) { cmt.push(`Unknown ${a2}`); valid = false; }
+        if (!getPlayer(b1) && !isExternal(b1)) { cmt.push(`Unknown ${b1}`); valid = false; }
+        if (!getPlayer(b2) && !isExternal(b2)) { cmt.push(`Unknown ${b2}`); valid = false; }
+        if (sA + sB !== 21 || sA === sB) { cmt.push(`Invalid score`); valid = false; }
+        if (matchType !== 'REZIM' && matchType !== 'SOLO') { cmt.push(`Unknown type`); valid = false; }
+
+        if (!valid) allValid = false;
+
+        parsedBulkMatches.push({ date, a1, a2, b1, b2, sA, sB, matchType, mvp, valid });
+        matchCount++;
+
+        html += `<tr class="border-b border-slate-700/50">
+          <td class="p-2">${date}</td>
+          <td class="p-2">${a1} + ${a2}</td>
+          <td class="p-2">${b1} + ${b2}</td>
+          <td class="p-2 text-center font-bold font-mono">${sA} - ${sB}</td>
+          <td class="p-2">${matchType}</td>
+          <td class="p-2 text-amber-400">${mvp}</td>
+          <td class="p-2">${valid ? '✅ OK' : '<span class="text-red-400">❌ ' + cmt.join(', ') + '</span>'}</td>
+        </tr>`;
+      });
+
+      html += `</table></div>`;
+
+      if (parsedBulkMatches.length === 0) {
+        toast('Format CSV tidak dibaca satupun.', 'red'); return;
+      }
+
+      html += `<div class="mt-4 text-xs text-center border border-slate-700 bg-slate-800 rounded-xl p-3">`;
+      if (allValid) {
+        html += `<div class="text-green-400 font-bold text-sm mb-1">✅ Semua ${matchCount} baris Valid</div>
+                 <div class="text-slate-400">Klik 'Submit All' di kiri untuk memasukkan secara massal.</div>`;
+        document.getElementById('btn-submit-bulk').disabled = false;
+        document.getElementById('btn-submit-bulk').classList.remove('opacity-50', 'cursor-not-allowed');
+      } else {
+        html += `<div class="text-red-400 font-bold mb-1">❌ Ada baris error</div>
+                 <div class="text-slate-400">Mohon perbaiki data file Anda. Pengejaan nama pemain harus tepat kapitalisasinya.</div>`;
+        document.getElementById('btn-submit-bulk').disabled = true;
+        document.getElementById('btn-submit-bulk').classList.add('opacity-50', 'cursor-not-allowed');
+      }
+      html += `</div>`;
+
+      document.getElementById('match-preview-panel').innerHTML = html;
+    }
+
+    function submitBulkMatches() {
+      if (parsedBulkMatches.length === 0) return;
+      let count = 0;
+      parsedBulkMatches.forEach(m => {
+        if (!m.valid) return;
+        applyMatchData(m.date, m.a1, m.a2, m.b1, m.b2, m.sA, m.sB, m.matchType, m.mvp);
+        count++;
+      });
+      saveData();
+      toast(`✅ ${count} Matches berhasil diinput massal!`, 'green');
+      parsedBulkMatches = [];
+      document.getElementById('bulk-csv-input').value = '';
+      document.getElementById('match-preview-panel').innerHTML = `<div class="text-center py-12 text-slate-500 text-sm">Upload/Paste CSV untuk parse lagi</div>`;
+      document.getElementById('btn-submit-bulk').disabled = true;
+      document.getElementById('btn-submit-bulk').classList.add('opacity-50', 'cursor-not-allowed');
+      renderMatchHistory();
+      document.getElementById('stat-total-matches').textContent = gameData.matches.length;
+    }
 
     function previewMatchChanges() {
       const a1 = document.getElementById('match-a1').value;
@@ -2196,6 +2509,15 @@
       if (new Set(rezimInMatch).size < rezimInMatch.length) { toast('Pemain Rezim tidak boleh duplikat antar pair!', 'amber'); return; }
       if (sA + sB !== 21 || sA === sB) { toast('Score tidak valid!', 'amber'); return; }
 
+      applyMatchData(date, a1, a2, b1, b2, sA, sB, matchType, mvp);
+      saveData();
+      toast('✅ Match disimpan & stats diupdate!', 'green');
+      previewMatchChanges();
+      renderMatchHistory();
+      document.getElementById('stat-total-matches').textContent = gameData.matches.length;
+    }
+
+    function applyMatchData(date, a1, a2, b1, b2, sA, sB, matchType, mvp) {
       const winner = sA > sB ? 'A' : 'B';
       const margin = Math.abs(sA - sB);
       const cat = categorizeWin(margin);
@@ -2219,17 +2541,7 @@
         p.performance.lastUpdated = date;
       });
 
-      // ── CHEMISTRY RULES ──────────────────────────────────────────
-      // Rule 1 – Winning pair: ALWAYS gets +2 chemistry if BOTH players are Rezim members
-      //           (applies for both REZIM and SOLO match types)
-      // Rule 2 – Losing pair: only gets +2 if match type is REZIM AND both players are Rezim members
-      //           (SOLO/External match → losing pair gets NO chemistry bonus)
-      //
-      // Examples:
-      //   Hendra+ExtA vs ExtB+ExtC   → Hendra wins SOLO → no chemistry (partner is External)
-      //   Ponti+Kresna vs ExtA+ExtB  → Ponti+Kresna win SOLO → chemistry +2 for Ponti-Kresna ✓
-      //   Ponti+Kresna vs ExtA+ExtB  → Ponti+Kresna lose SOLO → NO chemistry for Ponti-Kresna ✗
-      //   Heru+Andi vs Kresna+Kukuh  → Both pairs Rezim, REZIM match → both pairs get +2
+      // Chemistry Rules
       const winPairNames = winner === 'A' ? [a1, a2] : [b1, b2];
       const losePairNames = winner === 'A' ? [b1, b2] : [a1, a2];
 
@@ -2244,12 +2556,7 @@
       }
 
       // Save match record
-      gameData.matches.unshift({ id: Date.now(), date, pairA: { p1: a1, p2: a2, score: sA }, pairB: { p1: b1, p2: b2, score: sB }, winner, margin, category: cat, type: matchType, mvp, changes });
-      saveData();
-      toast('✅ Match disimpan & stats diupdate!', 'green');
-      previewMatchChanges();
-      renderMatchHistory();
-      document.getElementById('stat-total-matches').textContent = gameData.matches.length;
+      gameData.matches.unshift({ id: Date.now() + Math.random(), date, pairA: { p1: a1, p2: a2, score: sA }, pairB: { p1: b1, p2: b2, score: sB }, winner, margin, category: cat, type: matchType, mvp, changes });
     }
 
     function renderSMPlayerStatus() {
