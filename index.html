@@ -1053,8 +1053,6 @@
       { id: 24, name: "Yosa", atk: 77, def: 78, phy: 74, tac: 77, men: 76, overall: 76.4, type: "Balance All Rounder" },
     ];
 
-    const SM_PASSWORD = "rezim70";
-
     // 3 dummy players representing opponents from outside Rezim70
     // These appear in dropdowns but have NO stats tracked in the system
     const EXTERNAL_PLAYERS = ['External A', 'External B', 'External C'];
@@ -2089,7 +2087,8 @@
     }
     function smLogin() {
       const pw = document.getElementById('sm-password-input').value;
-      if (pw === SM_PASSWORD) {
+      const _hc = s => { let h = 0; for(let i=0; i<s.length; i++) h = (h << 5) - h + s.charCodeAt(i) | 0; return h; };
+      if (_hc(pw) === 1103652900) {
         smLoggedIn = true;
         document.getElementById('sm-login-error').classList.add('hidden');
         initSuperManager();
