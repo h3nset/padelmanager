@@ -481,23 +481,26 @@
       <div class="grid lg:grid-cols-3 gap-4">
         <!-- Player Selection -->
         <div class="lg:col-span-2">
-          
+
           <!-- AI Auto-Pairing Tools -->
           <div class="bg-slate-800/50 rounded-2xl border border-purple-500/30 p-4 mb-4 relative overflow-hidden">
-             <div class="absolute top-0 right-0 p-4 opacity-10 text-purple-500 text-6xl">🤖</div>
-             <h2 class="font-semibold text-purple-400 mb-2 relative z-10">🤖 AI Optimal Pair Generator</h2>
-             <p class="text-xs text-slate-400 mb-3 relative z-10">Sistem pintar untuk otomatis meracik daftar pemain <b>Fit</b> menjadi pasangan-pasangan paling imbang (menyeimbangkan Total Rating & Chemistry Limit).</p>
-             <div class="flex gap-2 relative z-10 w-full sm:w-2/3">
-               <select id="ai-pair-count" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 text-sm text-slate-300">
-                 <option value="4">Top 4 Fit Pemain (2 Pair)</option>
-                 <option value="8" selected>Top 8 Fit Pemain (4 Pair)</option>
-                 <option value="12">Top 12 Fit Pemain (6 Pair)</option>
-                 <option value="16">Top 16 Fit Pemain (8 Pair)</option>
-               </select>
-               <button onclick="generateAIPairs()" class="bg-purple-500 hover:bg-purple-400 text-white font-bold py-2.5 px-4 rounded-xl transition-colors text-sm whitespace-nowrap">
-                 ✨ Auto Pair (AI)
-               </button>
-             </div>
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-purple-500 text-6xl">🤖</div>
+            <h2 class="font-semibold text-purple-400 mb-2 relative z-10">🤖 AI Optimal Pair Generator</h2>
+            <p class="text-xs text-slate-400 mb-3 relative z-10">Sistem pintar untuk otomatis meracik daftar pemain
+              <b>Fit</b> menjadi pasangan-pasangan paling imbang (menyeimbangkan Total Rating & Chemistry Limit).</p>
+            <div class="flex gap-2 relative z-10 w-full sm:w-2/3">
+              <select id="ai-pair-count"
+                class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 text-sm text-slate-300">
+                <option value="4">Top 4 Fit Pemain (2 Pair)</option>
+                <option value="8" selected>Top 8 Fit Pemain (4 Pair)</option>
+                <option value="12">Top 12 Fit Pemain (6 Pair)</option>
+                <option value="16">Top 16 Fit Pemain (8 Pair)</option>
+              </select>
+              <button onclick="generateAIPairs()"
+                class="bg-purple-500 hover:bg-purple-400 text-white font-bold py-2.5 px-4 rounded-xl transition-colors text-sm whitespace-nowrap">
+                ✨ Auto Pair (AI)
+              </button>
+            </div>
           </div>
 
           <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-4 mb-4">
@@ -560,35 +563,40 @@
         <!-- H2H Analyzer -->
         <div class="lg:col-span-3 mt-4">
           <div class="bg-slate-800/50 rounded-2xl border border-blue-500/30 p-5 relative overflow-hidden">
-             <div class="absolute top-0 right-0 p-4 opacity-10 text-blue-500 text-6xl">⚔️</div>
-             <h2 class="font-semibold text-blue-400 mb-4 relative z-10">⚔️ Head-to-Head (H2H) Analyzer</h2>
-             
-             <div class="grid md:grid-cols-3 gap-4 relative z-10">
-               <div>
-                 <label class="text-xs text-slate-400 mb-1 block">Pair A</label>
-                 <select id="h2h-pair-a" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-300" onchange="renderH2H()"></select>
-               </div>
-               <div class="flex items-center justify-center">
-                 <div class="text-center">
-                   <div class="text-2xl font-black text-white italic">VS</div>
-                   <div id="h2h-diff-text" class="text-xs text-slate-400 mt-1">Pilih 2 Pair untuk membandingkan</div>
-                 </div>
-               </div>
-               <div>
-                 <label class="text-xs text-slate-400 mb-1 block">Pair B</label>
-                 <select id="h2h-pair-b" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-300" onchange="renderH2H()"></select>
-               </div>
-             </div>
-             
-             <div class="mt-6 flex flex-col md:flex-row items-center gap-6 relative z-10 hidden" id="h2h-chart-wrapper">
-               <div class="flex-1 w-full max-w-md aspect-square mx-auto">
-                 <canvas id="h2hRadarChart"></canvas>
-               </div>
-               <div class="flex-1 w-full bg-slate-900/50 rounded-xl p-4 border border-slate-700" id="h2h-stats-breakdown">
-                 <!-- Bars here -->
-               </div>
-             </div>
-             
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-blue-500 text-6xl">⚔️</div>
+            <h2 class="font-semibold text-blue-400 mb-4 relative z-10">⚔️ Head-to-Head (H2H) Analyzer</h2>
+
+            <div class="grid md:grid-cols-3 gap-4 relative z-10">
+              <div>
+                <label class="text-xs text-slate-400 mb-1 block">Pair A</label>
+                <select id="h2h-pair-a"
+                  class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-300"
+                  onchange="renderH2H()"></select>
+              </div>
+              <div class="flex items-center justify-center">
+                <div class="text-center">
+                  <div class="text-2xl font-black text-white italic">VS</div>
+                  <div id="h2h-diff-text" class="text-xs text-slate-400 mt-1">Pilih 2 Pair untuk membandingkan</div>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 mb-1 block">Pair B</label>
+                <select id="h2h-pair-b"
+                  class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-300"
+                  onchange="renderH2H()"></select>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-col md:flex-row items-center gap-6 relative z-10 hidden" id="h2h-chart-wrapper">
+              <div class="flex-1 w-full max-w-md aspect-square mx-auto">
+                <canvas id="h2hRadarChart"></canvas>
+              </div>
+              <div class="flex-1 w-full bg-slate-900/50 rounded-xl p-4 border border-slate-700"
+                id="h2h-stats-breakdown">
+                <!-- Bars here -->
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -914,38 +922,52 @@
         <!-- Tab: Data & Reports -->
         <div id="sm-tab-data" class="sm-tab-content hidden">
           <div class="grid sm:grid-cols-2 gap-4">
-            
+
             <!-- WhatsApp Report Generator -->
-            <div class="bg-slate-800/50 rounded-2xl border border-emerald-500/30 p-5 sm:col-span-2 relative overflow-hidden">
+            <div
+              class="bg-slate-800/50 rounded-2xl border border-emerald-500/30 p-5 sm:col-span-2 relative overflow-hidden">
               <div class="absolute top-0 right-0 p-4 opacity-10 text-emerald-500 text-6xl">💬</div>
               <h2 class="font-semibold text-emerald-400 mb-2 relative z-10">📱 WhatsApp Weekly Report</h2>
-              <p class="text-slate-400 text-xs mb-4 relative z-10">Buat rangkuman statistik minggu ini secara otomatis untuk dikirim ke grup WhatsApp Rezim70.</p>
+              <p class="text-slate-400 text-xs mb-4 relative z-10">Buat rangkuman statistik minggu ini secara otomatis
+                untuk dikirim ke grup WhatsApp Rezim70.</p>
               <div class="flex gap-3 relative z-10">
-                <button onclick="generateWAReport()" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-2.5 rounded-xl transition-colors text-sm">
+                <button onclick="generateWAReport()"
+                  class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-2.5 rounded-xl transition-colors text-sm">
                   ✨ Generate Report
                 </button>
-                <button onclick="copyWAReport()" id="btn-copy-wa" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 px-4 rounded-xl transition-colors text-sm hidden">
+                <button onclick="copyWAReport()" id="btn-copy-wa"
+                  class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 px-4 rounded-xl transition-colors text-sm hidden">
                   📋 Copy
                 </button>
               </div>
-              <textarea id="wa-report-output" rows="6" class="w-full mt-3 bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-slate-300 font-mono hidden" readonly></textarea>
+              <textarea id="wa-report-output" rows="6"
+                class="w-full mt-3 bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-slate-300 font-mono hidden"
+                readonly></textarea>
             </div>
 
             <!-- Cloud Sync Link -->
-            <div class="bg-slate-800/50 rounded-2xl border border-blue-500/30 p-5 sm:col-span-2 relative overflow-hidden">
+            <div
+              class="bg-slate-800/50 rounded-2xl border border-blue-500/30 p-5 sm:col-span-2 relative overflow-hidden">
               <div class="absolute top-0 right-0 p-4 opacity-10 text-blue-500 text-6xl">🌐</div>
               <h2 class="font-semibold text-blue-400 mb-2 relative z-10">🌐 Cloud Sync (Publish Data)</h2>
-              <p class="text-slate-400 text-xs mb-3 relative z-10">Publish data ke *cloud storage* sementara. Member lain hanya perlu mengklik URL yang dihasilkan untuk auto-sinkronisasi.</p>
+              <p class="text-slate-400 text-xs mb-3 relative z-10">Publish data ke *cloud storage* sementara. Member
+                lain hanya perlu mengklik URL yang dihasilkan untuk auto-sinkronisasi.</p>
               <div class="flex gap-2 relative z-10">
-                <button onclick="publishCloudSync()" id="btn-publish-sync" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2.5 px-4 rounded-xl transition-colors text-sm whitespace-nowrap">
+                <button onclick="publishCloudSync()" id="btn-publish-sync"
+                  class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2.5 px-4 rounded-xl transition-colors text-sm whitespace-nowrap">
                   ☁️ Publish Data
                 </button>
-                <input type="text" id="sync-url-output" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 text-xs text-slate-300 font-mono" placeholder="URL akan muncul di sini..." readonly>
-                <button onclick="copySyncUrl()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2.5 px-3 rounded-xl transition-colors text-sm" title="Copy URL">
+                <input type="text" id="sync-url-output"
+                  class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 text-xs text-slate-300 font-mono"
+                  placeholder="URL akan muncul di sini..." readonly>
+                <button onclick="copySyncUrl()"
+                  class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2.5 px-3 rounded-xl transition-colors text-sm"
+                  title="Copy URL">
                   📋
                 </button>
               </div>
-              <p class="text-[10px] text-amber-500 mt-2 relative z-10">Catatan: Menggunakan API gratis JSONBlob. Data otomatis terhapus oleh server mereka dalam beberapa bulan jika tidak ada aktivitas membaca.</p>
+              <p class="text-[10px] text-amber-500 mt-2 relative z-10">Catatan: Menggunakan API gratis JSONBlob. Data
+                otomatis terhapus oleh server mereka dalam beberapa bulan jika tidak ada aktivitas membaca.</p>
             </div>
 
             <!-- Local JSON File Options -->
@@ -959,7 +981,8 @@
             </div>
             <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-5">
               <h2 class="font-semibold text-white mb-2">📂 Import Local JSON</h2>
-              <p class="text-slate-400 text-xs mb-4">Load data dari file json backup. Data saat ini akan <strong class="text-red-400">ditimpa</strong>.</p>
+              <p class="text-slate-400 text-xs mb-4">Load data dari file json backup. Data saat ini akan <strong
+                  class="text-red-400">ditimpa</strong>.</p>
               <label class="w-full block">
                 <input type="file" id="import-file" accept=".json" onchange="importData(event)" class="hidden">
                 <div onclick="document.getElementById('import-file').click()"
@@ -1051,6 +1074,7 @@
       { id: 22, name: "Surya", atk: 74, def: 78, phy: 75, tac: 75, men: 76, overall: 75.6, type: "Pure Defensive" },
       { id: 23, name: "Tikie", atk: 78, def: 80, phy: 76, tac: 79, men: 78, overall: 78.2, type: "Balance All Rounder" },
       { id: 24, name: "Yosa", atk: 77, def: 78, phy: 74, tac: 77, men: 76, overall: 76.4, type: "Balance All Rounder" },
+      { id: 25, name: "Ira", atk: 70, def: 74, phy: 73, tac: 72, men: 75, overall: 72.8, type: "Defensive" },
     ];
 
     // 3 dummy players representing opponents from outside Rezim70
@@ -1709,66 +1733,66 @@
       const selectA = document.getElementById('h2h-pair-a');
       const selectB = document.getElementById('h2h-pair-b');
       if (selectA && selectB) {
-        if(!hasData) {
-           selectA.innerHTML = '<option value="">Kosong</option>';
-           selectB.innerHTML = '<option value="">Kosong</option>';
-           return;
+        if (!hasData) {
+          selectA.innerHTML = '<option value="">Kosong</option>';
+          selectB.innerHTML = '<option value="">Kosong</option>';
+          return;
         }
         const currA = selectA.value;
         const currB = selectB.value;
-        const opts = '<option value="">Pilih...</option>' + gameData.pairs.map((pair, idx) => `<option value="${idx}">⭐ ${calcPairRating(pair[0],pair[1])} | ${pair[0].name} & ${pair[1].name}</option>`).join('');
+        const opts = '<option value="">Pilih...</option>' + gameData.pairs.map((pair, idx) => `<option value="${idx}">⭐ ${calcPairRating(pair[0], pair[1])} | ${pair[0].name} & ${pair[1].name}</option>`).join('');
         selectA.innerHTML = opts; selectA.value = currA;
         selectB.innerHTML = opts; selectB.value = currB;
       }
     }
-    
+
     let h2hRadarChartInstance = null;
     function renderH2H() {
       const selectA = document.getElementById('h2h-pair-a');
       const selectB = document.getElementById('h2h-pair-b');
       const wrapper = document.getElementById('h2h-chart-wrapper');
-      
+
       if (!selectA.value || !selectB.value) {
         wrapper.classList.add('hidden');
         document.getElementById('h2h-diff-text').textContent = "Pilih 2 Pair untuk membandingkan";
         return;
       }
       if (selectA.value === selectB.value) {
-         document.getElementById('h2h-diff-text').textContent = "Pilih 2 Pair yang berbeda!";
-         wrapper.classList.add('hidden');
-         return;
+        document.getElementById('h2h-diff-text').textContent = "Pilih 2 Pair yang berbeda!";
+        wrapper.classList.add('hidden');
+        return;
       }
-      
+
       const pairA = gameData.pairs[selectA.value];
       const pairB = gameData.pairs[selectB.value];
       wrapper.classList.remove('hidden');
-      
+
       const statsA = [
-         (pairA[0].atk + pairA[1].atk) / 2,
-         (pairA[0].def + pairA[1].def) / 2,
-         (pairA[0].phy + pairA[1].phy) / 2,
-         (pairA[0].tac + pairA[1].tac) / 2,
-         (pairA[0].men + pairA[1].men) / 2,
+        (pairA[0].atk + pairA[1].atk) / 2,
+        (pairA[0].def + pairA[1].def) / 2,
+        (pairA[0].phy + pairA[1].phy) / 2,
+        (pairA[0].tac + pairA[1].tac) / 2,
+        (pairA[0].men + pairA[1].men) / 2,
       ];
       const statsB = [
-         (pairB[0].atk + pairB[1].atk) / 2,
-         (pairB[0].def + pairB[1].def) / 2,
-         (pairB[0].phy + pairB[1].phy) / 2,
-         (pairB[0].tac + pairB[1].tac) / 2,
-         (pairB[0].men + pairB[1].men) / 2,
+        (pairB[0].atk + pairB[1].atk) / 2,
+        (pairB[0].def + pairB[1].def) / 2,
+        (pairB[0].phy + pairB[1].phy) / 2,
+        (pairB[0].tac + pairB[1].tac) / 2,
+        (pairB[0].men + pairB[1].men) / 2,
       ];
-      
+
       const rateA = calcPairRating(pairA[0], pairA[1]);
       const rateB = calcPairRating(pairB[0], pairB[1]);
-      
+
       let winner = rateA > rateB ? 'Pair A' : (rateA < rateB ? 'Pair B' : 'Seimbang');
       let diff = Math.abs(rateA - rateB).toFixed(1);
-      
+
       document.getElementById('h2h-diff-text').innerHTML = `<span class="text-amber-400 font-bold">${winner}</span> unggul rating selisih ${diff}`;
-      
+
       const ctx = document.getElementById('h2hRadarChart').getContext('2d');
       if (h2hRadarChartInstance) { h2hRadarChartInstance.destroy(); }
-      
+
       h2hRadarChartInstance = new Chart(ctx, {
         type: 'radar',
         data: {
@@ -1806,24 +1830,24 @@
           plugins: { legend: { labels: { color: '#fff' } } }
         }
       });
-      
+
       const breakdown = document.getElementById('h2h-stats-breakdown');
-      breakdown.innerHTML = `<div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-3 text-center">Statistik Rata-rata Tim</div>` + 
-      ['Attacking', 'Defense', 'Physical', 'Tactical', 'Mental'].map((lbl, i) => {
-         let wA = statsA[i] >= statsB[i] ? 'text-blue-400 font-bold' : 'text-slate-400';
-         let wB = statsB[i] >= statsA[i] ? 'text-red-400 font-bold' : 'text-slate-400';
-         return `
+      breakdown.innerHTML = `<div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-3 text-center">Statistik Rata-rata Tim</div>` +
+        ['Attacking', 'Defense', 'Physical', 'Tactical', 'Mental'].map((lbl, i) => {
+          let wA = statsA[i] >= statsB[i] ? 'text-blue-400 font-bold' : 'text-slate-400';
+          let wB = statsB[i] >= statsA[i] ? 'text-red-400 font-bold' : 'text-slate-400';
+          return `
            <div class="flex items-center justify-between text-xs mb-1">
              <span class="w-8 text-right ${wA}">${statsA[i].toFixed(1)}</span>
              <span class="flex-1 text-center text-slate-500">${lbl}</span>
              <span class="w-8 text-left ${wB}">${statsB[i].toFixed(1)}</span>
            </div>
            <div class="flex h-1.5 bg-slate-800 rounded-full overflow-hidden mb-3">
-             <div class="bg-blue-500 hover:opacity-80 transition-opacity" style="width: ${(statsA[i]/(statsA[i]+statsB[i]))*100}%"></div>
-             <div class="bg-red-500 hover:opacity-80 transition-opacity" style="width: ${(statsB[i]/(statsA[i]+statsB[i]))*100}%"></div>
+             <div class="bg-blue-500 hover:opacity-80 transition-opacity" style="width: ${(statsA[i] / (statsA[i] + statsB[i])) * 100}%"></div>
+             <div class="bg-red-500 hover:opacity-80 transition-opacity" style="width: ${(statsB[i] / (statsA[i] + statsB[i])) * 100}%"></div>
            </div>
          `;
-      }).join('');
+        }).join('');
     }
 
     function sendPairsToSimulator() {
@@ -2087,7 +2111,7 @@
     }
     function smLogin() {
       const pw = document.getElementById('sm-password-input').value;
-      const _hc = s => { let h = 0; for(let i=0; i<s.length; i++) h = (h << 5) - h + s.charCodeAt(i) | 0; return h; };
+      const _hc = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h << 5) - h + s.charCodeAt(i) | 0; return h; };
       if (_hc(pw) === 1103652900) {
         smLoggedIn = true;
         document.getElementById('sm-login-error').classList.add('hidden');
@@ -2781,9 +2805,9 @@
       const sorted = [...gameData.players].sort((a, b) => b.overall - a.overall);
       document.getElementById('sm-player-status-list').innerHTML = sorted.map(p => {
         const status = p.performance?.status || 'Fit';
-        const borderColor = {'Fit':'border-green-500/30','Minor Injury':'border-yellow-500/30','Injured':'border-red-500/30','On Break':'border-slate-500/30'}[status] || 'border-slate-700/50';
+        const borderColor = { 'Fit': 'border-green-500/30', 'Minor Injury': 'border-yellow-500/30', 'Injured': 'border-red-500/30', 'On Break': 'border-slate-500/30' }[status] || 'border-slate-700/50';
         return `<div class="flex items-center gap-3 bg-slate-800/60 border ${borderColor} rounded-xl px-4 py-2.5">
-      <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-black text-amber-400 shrink-0">${sorted.indexOf(p)+1}</div>
+      <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-black text-amber-400 shrink-0">${sorted.indexOf(p) + 1}</div>
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 flex-wrap">
           <span class="font-bold text-white text-sm tracking-wide">${p.name}</span>
@@ -2869,33 +2893,33 @@
     function generateAIPairs() {
       const count = parseInt(document.getElementById('ai-pair-count').value);
       let fitPlayers = gameData.players.filter(p => !['Injured', 'On Break'].includes(p.performance?.status));
-      fitPlayers.sort((a,b) => b.overall - a.overall);
-      
-      if(fitPlayers.length < count) {
+      fitPlayers.sort((a, b) => b.overall - a.overall);
+
+      if (fitPlayers.length < count) {
         toast(`Hanya ada ${fitPlayers.length} pemain Fit! Butuh ${count}.`, 'red');
         return;
       }
-      
+
       let pool = fitPlayers.slice(0, count);
       let totalOverall = pool.reduce((sum, p) => sum + p.overall, 0);
       let expectedAvg = totalOverall / count;
-      let targetPairRating = expectedAvg * 1.01; 
+      let targetPairRating = expectedAvg * 1.01;
 
       let newPairs = [];
-      while(pool.length > 0) {
-        const p1 = pool.shift(); 
+      while (pool.length > 0) {
+        const p1 = pool.shift();
         let bestDiff = Infinity;
         let bestIndex = 0;
-        
-        for(let i=0; i<pool.length; i++) {
+
+        for (let i = 0; i < pool.length; i++) {
           const rating = calcPairRating(p1, pool[i]);
           const diff = Math.abs(rating - targetPairRating);
-          if(diff < bestDiff) {
+          if (diff < bestDiff) {
             bestDiff = diff;
             bestIndex = i;
           }
         }
-        
+
         const p2 = pool.splice(bestIndex, 1)[0];
         const key = [p1.name, p2.name].sort().join('-');
         // Add to main memory if not duplicate
@@ -2913,31 +2937,31 @@
     //  WA REPORT & CLOUD SYNC
     // ============================================================
     function generateWAReport() {
-      const playersAsc = [...gameData.players].sort((a,b)=> b.overall - a.overall);
+      const playersAsc = [...gameData.players].sort((a, b) => b.overall - a.overall);
       const hotPlayers = playersAsc.filter(p => p.performance?.currentStreak >= 3).slice(0, 3);
-      
+
       let text = `*Rezim Padel Weekly Report* 🎾🔥\n\n`;
       text += `*🏆 Top 5 Klasemen:*\n`;
       playersAsc.slice(0, 5).forEach((p, i) => {
-        text += `${i+1}. ${p.name} - ⭐ ${p.overall}\n`;
+        text += `${i + 1}. ${p.name} - ⭐ ${p.overall}\n`;
       });
-      
-      if(hotPlayers.length > 0) {
+
+      if (hotPlayers.length > 0) {
         text += `\n*🔥 On Fire (Win Streak):*\n`;
         hotPlayers.forEach(p => {
           text += `- ${p.name} (${p.performance.currentStreak} wins)\n`;
         });
       }
 
-      const mvps = [...gameData.players].sort((a,b) => (b.performance?.mvpCount || 0) - (a.performance?.mvpCount || 0)).filter(p => p.performance?.mvpCount > 0);
-      if(mvps.length > 0) {
+      const mvps = [...gameData.players].sort((a, b) => (b.performance?.mvpCount || 0) - (a.performance?.mvpCount || 0)).filter(p => p.performance?.mvpCount > 0);
+      if (mvps.length > 0) {
         text += `\n*👑 Top MVP Sepanjang Masa:*\n`;
         text += `- ${mvps[0].name} (${mvps[0].performance.mvpCount}x MVP)\n`;
       }
-      
+
       text += `\n_Total match terekam: ${gameData.matches.length}_\n`;
       text += `Tetap semangat berlatih! 💪 #Rezim70`;
-      
+
       const out = document.getElementById('wa-report-output');
       out.value = text;
       out.classList.remove('hidden');
@@ -3007,7 +3031,7 @@
 
     function copySyncUrl() {
       const out = document.getElementById('sync-url-output');
-      if(!out.value) return;
+      if (!out.value) return;
       out.select();
       document.execCommand('copy');
       toast('📋 URL Disalin!', 'green');
@@ -3016,21 +3040,21 @@
     async function checkCloudSyncOnLoad() {
       const urlParams = new URLSearchParams(window.location.search);
       const syncId = urlParams.get('sync');
-      if(syncId) {
+      if (syncId) {
         // Stop default rendering to prevent flicker
         document.body.innerHTML = `<div style="height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#fbbf24;font-family:sans-serif;font-weight:bold;">⏳ Mengunduh Sinkronisasi Data...</div>`;
         try {
           const res = await fetch(`https://jsonblob.com/api/jsonBlob/${syncId}`);
-          if(res.ok) {
+          if (res.ok) {
             const imported = await res.json();
-            if(imported && imported.players) {
+            if (imported && imported.players) {
               localStorage.setItem('rezim_game_data', JSON.stringify(imported));
               setTimeout(() => { window.location.href = window.location.pathname; }, 1000);
               return true;
             }
           }
           alert('❌ Link Sync kadaluarsa atau salah.');
-        } catch(e) {
+        } catch (e) {
           alert('❌ Gagal download sinkronisasi. Cek koneksi Anda.');
         }
         window.location.href = window.location.pathname;
@@ -3047,24 +3071,24 @@
       if (isSyncing) return; // Halt init if syncing
 
       loadData();
-    // Update pairs from loaded players (re-resolve player references)
-    gameData.pairs = gameData.pairs.map(pair => [
-      getPlayer(pair[0].name) || pair[0],
-      getPlayer(pair[1].name) || pair[1]
-    ]);
-    showPage('home');
+      // Update pairs from loaded players (re-resolve player references)
+      gameData.pairs = gameData.pairs.map(pair => [
+        getPlayer(pair[0].name) || pair[0],
+        getPlayer(pair[1].name) || pair[1]
+      ]);
+      showPage('home');
 
-    document.getElementById('sim-bracket-size')?.addEventListener('change', () => {
-      simSelectedPairsForTournament = [];
-      document.getElementById('sim-selected-count').textContent = 0;
-      renderSimPairSelector();
-      updateSimStartBtn();
-    });
+      document.getElementById('sim-bracket-size')?.addEventListener('change', () => {
+        simSelectedPairsForTournament = [];
+        document.getElementById('sim-selected-count').textContent = 0;
+        renderSimPairSelector();
+        updateSimStartBtn();
+      });
 
-    // Close modal on overlay click
-    document.getElementById('player-modal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('player-modal')) closeModal();
-    });
+      // Close modal on overlay click
+      document.getElementById('player-modal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('player-modal')) closeModal();
+      });
 
     })();
   </script>
